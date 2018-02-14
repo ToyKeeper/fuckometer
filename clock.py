@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 
+import math
 import os
 import random
+import re
 import sys
 import time
 
@@ -100,6 +102,7 @@ def divergence_update():
 deathclock = Periodic(deathclock_update, 60*60*24)
 divergence = Periodic(divergence_update, 60*60*24)
 
+
 def open_windows_update():
     line = open('%s/.open/open.otl.stats' % (os.environ['HOME'])).readline()
     parts = line.split()
@@ -107,13 +110,55 @@ def open_windows_update():
     text = line.strip()
     return windows, text
 
-open_windows = Periodic(open_windows_update, 60*60)
+open_windows = Periodic(open_windows_update, 60*5)
+
+
+def todo_list_update():
+    """Check my todo list daily status for items done and days to review.
+    """
+    value = 0.0
+    text = ''
+
+    # set low expectations in the morning, but rise throughout the day
+    # (can't be expected to have stuff done already in the morning)
+    scale = 1.0
+    now = time.localtime()
+    compare = list(now)
+    morning_hour = 6
+    if now[3] < morning_hour:  # if it's after midnight, measure from previous morning
+        compare[2] -= 1
+    compare[3:8] = [morning_hour, 0, 0, 0, 0]
+    scale = (time.mktime(now) - time.mktime(compare)) / (24.0*60*60)
+    #print('\ntodo_list_update(): scale=%.2f' % (scale))
+
+    try:
+        line = open('%s/ram/.todo.slate' % (os.environ['HOME'])).readline()
+        text = line.strip()
+    except IOError:
+        line = ''
+    pat = re.compile(r'''([\.\d]+)/(\d+) .* \((\d+) to review''')
+    found = pat.search(line)
+    if found:
+        done = float(found.group(1))
+        remaining = float(found.group(2))
+        to_review = max(1.0, float(found.group(3)))
+        factors = []
+        factors.append(scale * max(0.0, (6 - done) / 6.0))
+        factors.append(scale * max(0.0, min(1.0, math.log(to_review, 100))))
+        value = sum(factors) / len(factors)
+    #print('\ntodo_list_update(%.2f * (%s, %s)) -> %.2f (%s)' % (scale, done, to_review, value, factors))
+
+    return value, text
+
+todo_list = Periodic(todo_list_update, 60*5)
+
 
 def fuckometer_update():
     factors = []
 
     # Steins;Gate world line divergence number
-    factors.append(max(0.0, 1.0 - divergence.value))
+    # (meh, too random, makes fuckometer less meaningful)
+    #factors.append(max(0.0, 1.0 - divergence.value))
 
     # how close am I to death?
     factors.append(max(0.0, (20-deathclock.value) / 10.0))
@@ -125,16 +170,20 @@ def fuckometer_update():
     value = min(1.0, max(0.0, value))
     factors.append(value)
 
+    # factor in the state of my todo list today
+    todo_list()
+    factors.append(todo_list.value)
+
     # TODO: factor in recent monetary flow and balance
     # TODO: factor in my overall health
     #       (have I exercised lately?  is my weight too high/low?)
     # TODO: factor in recent news
-    # TODO: factor in the state of my todo list today
     # TODO: factor in how much time I've spent working today vs slacking
 
     # average the values
     value = sum(factors) / len(factors)
     value = max(0.0, value)
+
     return value, 'Fuckometer: %.0f%%' % (100.0 * value)
 
 
