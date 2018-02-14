@@ -2,11 +2,14 @@
 
 import os
 import random
+import sys
 import time
 
 
 def main(args):
     rotation_speed = 10  # seconds per screen
+    if args:
+        rotation_speed = float(args[0])
 
     leftsides = [datetime]
     rightsides = [deathclock, divergence, fuckometer]
@@ -16,7 +19,12 @@ def main(args):
     while True:
         lfunc = leftsides[lhs]
         rfunc = rightsides[rhs]
-        print('%s  %s' % (lfunc(), rfunc()))
+
+        # TODO: shorten output to fit on a 8-character display
+        #print('\n%s  %s' % (lfunc(), rfunc()))
+        sys.stdout.write('\n%s  %s' % (lfunc(), rfunc()))
+        sys.stdout.flush()
+
         time.sleep(0.5)
 
         if time.time() > (rotated + rotation_speed):
@@ -75,7 +83,7 @@ def deathclock_update():
     #print('You are %.2f years old.' % (today_years))
 
     display_years = remaining_years
-    fmt = 'You have %.2f years to live.  (%i days)'
+    fmt = 'ETD %.2f y / %i d'
     if remaining_years < 0:
         fmt = 'You are %.2f years past your expiration date.  (%i days)'
         display_years = -remaining_years
@@ -92,6 +100,14 @@ def divergence_update():
 deathclock = Periodic(deathclock_update, 60*60*24)
 divergence = Periodic(divergence_update, 60*60*24)
 
+def open_windows_update():
+    line = open('%s/.open/open.otl.stats' % (os.environ['HOME'])).readline()
+    parts = line.split()
+    windows = int(parts[0])
+    text = line.strip()
+    return windows, text
+
+open_windows = Periodic(open_windows_update, 60*60)
 
 def fuckometer_update():
     factors = []
@@ -101,6 +117,13 @@ def fuckometer_update():
 
     # how close am I to death?
     factors.append(max(0.0, (20-deathclock.value) / 10.0))
+
+    # factor in number of windows / tabs currently open
+    open_windows()
+    windows = open_windows.value
+    value = (windows - 100) / 250.0
+    value = min(1.0, max(0.0, value))
+    factors.append(value)
 
     # TODO: factor in recent monetary flow and balance
     # TODO: factor in my overall health
