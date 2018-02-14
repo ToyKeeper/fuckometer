@@ -7,6 +7,8 @@ import re
 import sys
 import time
 
+# TODO: periodically log the fuckometer value so I can graph it later
+
 
 def main(args):
     rotation_speed = 10  # seconds per screen
@@ -14,7 +16,8 @@ def main(args):
         rotation_speed = float(args[0])
 
     leftsides = [datetime]
-    rightsides = [deathclock, divergence, fuckometer]
+    #rightsides = [deathclock, divergence, fuckometer]
+    rightsides = [deathclock, fuckometer]
 
     lhs, rhs = 0, 0
     rotated = time.time()
@@ -41,6 +44,9 @@ class Periodic:
         self.updated_at = 0
         self.value = 0.0
         self.text = ''
+
+        # FIXME: if period is 1 day, set each cycle to 6am
+        #        (so it'll only update only when I'm asleep)
 
     def __call__(self):
         now = time.time()
@@ -99,6 +105,7 @@ def divergence_update():
 
 
 # FIXME: defining these globally is a nasty kludge
+# FIXME: make these reset at 6am, not 24 hours from script start
 deathclock = Periodic(deathclock_update, 60*60*24)
 divergence = Periodic(divergence_update, 60*60*24)
 
@@ -110,7 +117,7 @@ def open_windows_update():
     text = line.strip()
     return windows, text
 
-open_windows = Periodic(open_windows_update, 60*5)
+open_windows = Periodic(open_windows_update, 63)
 
 
 def todo_list_update():
@@ -136,21 +143,33 @@ def todo_list_update():
         text = line.strip()
     except IOError:
         line = ''
-    pat = re.compile(r'''([\.\d]+)/(\d+) .* \((\d+) to review''')
+    # TODO: maybe factor in results from yesterday too?
+    # factor in a few things...
+    # - items done today
+    # - days needing review
+    # - how many "[F]" fail entries there have been today
+    pat = re.compile(r'''([\.\d]+)/(\d+) .* \((\d+) to review\)( \[F+\])?''')
     found = pat.search(line)
     if found:
         done = float(found.group(1))
         remaining = float(found.group(2))
         to_review = max(1.0, float(found.group(3)))
+        failtext = found.group(4)
+        failcount = 0
+        if failtext:
+            for letter in failtext:
+                if 'F' == letter:
+                    failcount += 1
         factors = []
-        factors.append(scale * max(0.0, (6 - done) / 6.0))
+        #factors.append(scale * max(0.0, (6 - done) / 6.0))
+        factors.append(scale * (failcount + 6 - done) / 6.0)
         factors.append(scale * max(0.0, min(1.0, math.log(to_review, 100))))
         value = sum(factors) / len(factors)
     #print('\ntodo_list_update(%.2f * (%s, %s)) -> %.2f (%s)' % (scale, done, to_review, value, factors))
 
     return value, text
 
-todo_list = Periodic(todo_list_update, 60*5)
+todo_list = Periodic(todo_list_update, 61)
 
 
 def fuckometer_update():
@@ -179,12 +198,17 @@ def fuckometer_update():
     #       (have I exercised lately?  is my weight too high/low?)
     # TODO: factor in recent news
     # TODO: factor in how much time I've spent working today vs slacking
+    # TODO: factor in unprocessed papers?
+    # TODO: factor in windows open on my other computer(s)
+    # TODO: factor in current weather
+    # TODO: factor in the size of my combined email inboxes
 
     # average the values
     value = sum(factors) / len(factors)
     value = max(0.0, value)
 
-    return value, 'Fuckometer: %.0f%%' % (100.0 * value)
+    #return value, 'Fuckometer: %.0f%%' % (100.0 * value)
+    return value, 'Fuckometer: %.1f%%' % (100.0 * value)
 
 
 # FIXME: defining this globally is a nasty kludge
