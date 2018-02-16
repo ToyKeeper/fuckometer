@@ -7,17 +7,19 @@ import re
 import sys
 import time
 
-# TODO: periodically log the fuckometer value so I can graph it later
-
 
 def main(args):
     rotation_speed = 10  # seconds per screen
+    fucklogpath = 'fuckometer.log'
     if args:
         rotation_speed = float(args[0])
 
     leftsides = [datetime]
     #rightsides = [deathclock, divergence, fuckometer]
     rightsides = [deathclock, fuckometer]
+
+    # periodically log the fuckometer value so I can graph it later
+    fucklog = PeriodicLog(fucklogpath, fuckometer, condition=ten_minutes)
 
     lhs, rhs = 0, 0
     rotated = time.time()
@@ -30,6 +32,8 @@ def main(args):
         sys.stdout.write('\n%s  %s' % (lfunc(), rfunc()))
         sys.stdout.flush()
 
+        fucklog()
+
         time.sleep(0.5)
 
         if time.time() > (rotated + rotation_speed):
@@ -37,30 +41,66 @@ def main(args):
             rotated = time.time()
 
 
-# TODO: make a conditional version...
-#       def at_6_am(prev, now):
-#           """Daily at 6am"""
-#           if (diff(now,prev)>(60*60)) and (now[3] == 6):
-#             return True
-#           return False
-#       daily = Conditional(update=myfunc, condition=at_6_am)
 class Periodic:
-    def __init__(self, update, period=60*60):
+    def __init__(self, update=None, period=60*60, condition=None):
         self.period = period
-        self.update = update
+        if update: self.update = update
         self.updated_at = 0
         self.value = 0.0
         self.text = ''
-
-        # FIXME: if period is 1 day, set each cycle to 6am
-        #        (so it'll only update only when I'm asleep)
+        self.condition = condition
 
     def __call__(self):
         now = time.time()
-        if now > (self.updated_at + self.period):
+        update_now = False
+        if self.condition:
+            if self.condition(self.updated_at, now):
+                update_now = True
+        else:
+            if now > (self.updated_at + self.period):
+                update_now = True
+        if update_now:
             self.value, self.text = self.update()
             self.updated_at = now
         return self.text
+
+    def update(self):
+        return 0, ''
+
+
+class PeriodicLog(Periodic):
+    def __init__(self, path, obj, *args, **kwargs):
+        Periodic.__init__(self, *args, **kwargs)
+        self.path = path
+        self.obj = obj
+
+    def update(self):
+        now = time.strftime('%Y-%m-%d %H:%M:%S')
+        line = '%s\t%s\n' % (now, self.obj.value)
+        fp = open(self.path, 'a')
+        fp.write(line)
+        fp.close()
+        return 0, ''
+
+
+def six_am(prev, now):
+    """Daily at 6am"""
+    when = time.localtime(now)
+    if (now-prev > 60*60*24*365):  # activate on first call
+        return True
+    #if (now-prev > 9) and ((when[5]%10) == 6):
+    if (now-prev > 60*60) and (when[3] == 6):
+      return True
+    return False
+
+
+def ten_minutes(prev, now):
+    """Every ten minutes at HH:M0:00"""
+    when = time.localtime(now)
+    #if (now-prev > 9) and (when[5]%10 == 0):
+    if (now-prev > 60*9) and (when[4]%10 == 0):
+      return True
+    return False
 
 
 def datetime():
@@ -112,9 +152,8 @@ def divergence_update():
 
 
 # FIXME: defining these globally is a nasty kludge
-# FIXME: make these reset at 6am, not 24 hours from script start
-deathclock = Periodic(deathclock_update, 60*60*24)
-divergence = Periodic(divergence_update, 60*60*24)
+deathclock = Periodic(deathclock_update, condition=six_am)
+divergence = Periodic(divergence_update, condition=six_am)
 
 
 def open_windows_update():
