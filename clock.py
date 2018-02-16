@@ -9,6 +9,7 @@ import time
 
 
 def main(args):
+    dryrun = False
     rotation_speed = 10  # seconds per screen
     fucklogpath = 'fuckometer.log'
     if args:
@@ -32,7 +33,8 @@ def main(args):
         sys.stdout.write('\n%s  %s' % (lfunc(), rfunc()))
         sys.stdout.flush()
 
-        fucklog()
+        if not dryrun:
+            fucklog()
 
         time.sleep(0.5)
 
@@ -42,13 +44,16 @@ def main(args):
 
 
 class Periodic:
-    def __init__(self, update=None, period=60*60, condition=None):
+    def __init__(self, update=None, period=60*60, condition=None, history=None):
         self.period = period
         if update: self.update = update
         self.updated_at = 0
         self.value = 0.0
         self.text = ''
         self.condition = condition
+        self.history = history
+        if history:
+            self.values = []
 
     def __call__(self):
         now = time.time()
@@ -62,6 +67,10 @@ class Periodic:
         if update_now:
             self.value, self.text = self.update()
             self.updated_at = now
+            if self.history:
+                self.values.append(self.value)
+                while len(self.values) > self.history:
+                    del self.values[0]
         return self.text
 
     def update(self):
@@ -253,15 +262,24 @@ def fuckometer_update():
     value = sum(factors) / len(factors)
     value = max(0.0, value)
 
-    # TODO: save past N values
-    # TODO: include trend info: /, -, \
+    # include trend info: /, -, \ 
+    prev = value
+    diff = 0.0
+    if len(fuckometer.values) > 1:
+        diff = 100.0 * (value - fuckometer.values[0])
+    if abs(diff) < 1.0:
+        trend = '-'
+    elif diff < 0:
+        trend = '\\'
+    else:
+        trend = '/'
 
     #return value, 'Fuckometer: %.0f%%' % (100.0 * value)
-    return value, 'Fuckometer: %.1f%%' % (100.0 * value)
+    return value, 'Fuckometer: %s %.1f%%' % (trend, 100.0 * value)
 
 
 # FIXME: defining this globally is a nasty kludge
-fuckometer = Periodic(fuckometer_update, 60)
+fuckometer = Periodic(fuckometer_update, 60, history=60)
 
 
 if __name__ == "__main__":
