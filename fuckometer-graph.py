@@ -49,12 +49,18 @@ def main(args):
         values = [s for t,s in points]
 
         # show dates as dates
-        pl.gca().xaxis.set_major_formatter(mpl.dates.DateFormatter('%Y-%m-%d'))
+        #fmt = '%Y-%m-%d'
+        #fmt = '%m-%d'
+        fmt = '%a'
+        pl.gca().xaxis.set_major_formatter(mpl.dates.DateFormatter(fmt))
+        #locator = mpl.dates.AutoDateLocator
+        #formatter = mpl.dates.AutoDateFormatter(locator)
+        #pl.gca().xaxis.set_major_formatter(formatter)
         #pl.gca().xaxis.set_major_locator(mpl.dates.MonthLocator())
 
         pl.plot(times, values, label=title)
 
-        pl.gcf().autofmt_xdate()  # tilt the labels so more can fit
+        #pl.gcf().autofmt_xdate()  # tilt the labels so more can fit
 
         if show_avg:
             # show average value over time...
@@ -87,10 +93,23 @@ def main(args):
     fig = pl.gcf()
     fig.set_frameon(False)
     fig.set_size_inches(4,3)
-    fig.tight_layout(pad=1.0)
+    fig.tight_layout(pad=0.333)
+
+    # adjust boundaries
+    granularity = 5.0
+    highest = max(values)
+    lowest = min(values)
+    #highest = max(100, max(values))
+    highest = highest + (granularity - (highest % granularity))
+    lowest = lowest - (lowest % granularity)
+    #pl.ylim((0.0, highest))
+    pl.ylim((lowest, highest))
+
+    pl.xlim((min(times), max(times)))
 
     #pl.show()
     pl.savefig('/tmp/fuckometer.png')
+
 
 if __name__ == "__main__":
     import sys
