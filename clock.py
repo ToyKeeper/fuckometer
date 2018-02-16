@@ -37,6 +37,13 @@ def main(args):
             rotated = time.time()
 
 
+# TODO: make a conditional version...
+#       def at_6_am(prev, now):
+#           """Daily at 6am"""
+#           if (diff(now,prev)>(60*60)) and (now[3] == 6):
+#             return True
+#           return False
+#       daily = Conditional(update=myfunc, condition=at_6_am)
 class Periodic:
     def __init__(self, update, period=60*60):
         self.period = period
@@ -206,6 +213,9 @@ def fuckometer_update():
     # average the values
     value = sum(factors) / len(factors)
     value = max(0.0, value)
+
+    # TODO: save past N values
+    # TODO: include trend info: /, -, \
 
     #return value, 'Fuckometer: %.0f%%' % (100.0 * value)
     return value, 'Fuckometer: %.1f%%' % (100.0 * value)
