@@ -11,7 +11,7 @@ import mtxorb
 
 
 def main(args):
-    dryrun = True
+    dryrun = False
     use_lcd = True
     rotation_speed = 10  # seconds per screen
     fucklogpath = 'fuckometer.log'
@@ -52,7 +52,7 @@ def main(args):
             ]
             updatelcd(lines)
 
-        time.sleep(0.5)
+        sleep_until_500ms()
 
         if time.time() > (rotated + rotation_speed):
             rhs = (rhs + 1) % len(rightsides)
@@ -108,6 +108,15 @@ class PeriodicLog(Periodic):
         return 0, ''
 
 
+def sleep_until_500ms():
+    """Wait until clock is evenly divisible by 0.5s.
+    (and wait at least until the next occurrence)
+    """
+    time.sleep(0.1)
+    while time.time() % 0.5 > 0.06:
+        time.sleep(0.02)
+
+
 def six_am(prev, now):
     """Daily at 6am"""
     when = time.localtime(now)
@@ -138,7 +147,8 @@ def datetime():
         colon = ':'
     else:
         colon = ' '
-    fmt = '%%Y-%%m-%%d %%H%s%%M%s%%S' % (colon, colon)
+    #fmt = '%%Y-%%m-%%d %%H%s%%M%s%%S' % (colon, colon)
+    fmt = ' %%a %%m-%%d %%H%s%%M%s%%S' % (colon, colon)
     return time.strftime(fmt)
 
 
@@ -163,7 +173,7 @@ def deathclock_update():
     #print('You are %.2f years old.' % (today_years))
 
     display_years = remaining_years
-    fmt = 'ETD %.2f y / %i d'
+    fmt = 'ETD %.1f y / %i d'
     if remaining_years < 0:
         fmt = 'You are %.2f years past your expiration date.  (%i days)'
         display_years = -remaining_years
@@ -291,7 +301,7 @@ def fuckometer_update():
         trend = '/'
 
     #return value, 'Fuckometer: %.0f%%' % (100.0 * value)
-    return value, 'Fuckometer: %s %.1f%%' % (trend, 100.0 * value)
+    return value, 'Fuckometer: %5.1f%% %s' % (100.0 * value, trend)
 
 
 # FIXME: defining this globally is a nasty kludge
