@@ -11,12 +11,49 @@ import mtxorb
 
 
 def main(args):
-    dryrun = False
-    use_lcd = True
+    """Fuckometer clock.
+    Usage: ./clock.py [options]
+    Options include:
+      -h   --help      Display this info, and exit.
+      -t T --time T    Show each screen for T seconds before rotating.
+      -o F --log F     Log fuckometer data to file F every 10 minutes.
+      -d   --dry-run   Don't write to the log file.
+      -l D --lcd D     Display on the LCD at device D.
+                       (default /dev/ttyUSB1)
+    """
+
     rotation_speed = 10  # seconds per screen
+    dryrun = False
     fucklogpath = 'fuckometer.log'
-    if args:
-        rotation_speed = float(args[0])
+    use_lcd = False
+    lcdpath = '/dev/ttyUSB1'
+
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ('-h', '--help'):
+            return usage()
+        elif a in ('-o', '--log'):
+            i += 1
+            a = args[i]
+            fucklogpath = a
+        elif a in ('-d', '--dryrun', '--dry-run'):
+            dryrun = True
+        elif a in ('-t', '--time'):
+            i += 1
+            a = args[i]
+            rotation_speed = float(a)
+        elif a in ('-l', '--lcd'):
+            i += 1
+            a = args[i]
+            lcdpath = a
+            if os.path.exists(lcdpath):
+                use_lcd = True
+        else:
+            return usage()
+
+        i += 1
+
 
     leftsides = [datetime]
     #rightsides = [deathclock, divergence, fuckometer]
@@ -26,7 +63,7 @@ def main(args):
     fucklog = PeriodicLog(fucklogpath, fuckometer, condition=ten_minutes)
 
     if use_lcd:
-        mtxorb.init()
+        mtxorb.init(lcdpath)
 
     lhs, rhs = 0, 0
     rotated = time.time()
@@ -57,6 +94,10 @@ def main(args):
         if time.time() > (rotated + rotation_speed):
             rhs = (rhs + 1) % len(rightsides)
             rotated = time.time()
+
+
+def usage():
+    print(main.__doc__)
 
 
 class Periodic:
