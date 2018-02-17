@@ -44,9 +44,11 @@ def lcdwrite(lines):
     lcd.flush()
 
 
-def init():
+def init(path=None):
     global lcd
-    lcd = open('/dev/ttyUSB1', 'wb')
+    if not path:
+        path = '/dev/ttyUSB1'
+    lcd = open(path, 'wb')
     lcdclear()
 
 
