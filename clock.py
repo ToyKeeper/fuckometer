@@ -7,9 +7,12 @@ import re
 import sys
 import time
 
+import mtxorb
+
 
 def main(args):
-    dryrun = False
+    dryrun = True
+    use_lcd = True
     rotation_speed = 10  # seconds per screen
     fucklogpath = 'fuckometer.log'
     if args:
@@ -22,6 +25,9 @@ def main(args):
     # periodically log the fuckometer value so I can graph it later
     fucklog = PeriodicLog(fucklogpath, fuckometer, condition=ten_minutes)
 
+    if use_lcd:
+        mtxorb.init()
+
     lhs, rhs = 0, 0
     rotated = time.time()
     while True:
@@ -29,12 +35,22 @@ def main(args):
         rfunc = rightsides[rhs]
 
         # TODO: shorten output to fit on a 8-character display
+        left = lfunc()
         #print('\n%s  %s' % (lfunc(), rfunc()))
-        sys.stdout.write('\n%s  %s' % (lfunc(), rfunc()))
+        sys.stdout.write('\n%s  %s' % (left, rfunc()))
         sys.stdout.flush()
 
         if not dryrun:
             fucklog()
+
+        if use_lcd:
+            lines = [
+                '%-20s' % (left),
+                '%-20s' % (deathclock()),
+                '%-20s' % (divergence()),
+                '%-20s' % (fuckometer()),
+            ]
+            updatelcd(lines)
 
         time.sleep(0.5)
 
@@ -267,7 +283,7 @@ def fuckometer_update():
     diff = 0.0
     if len(fuckometer.values) > 1:
         diff = 100.0 * (value - fuckometer.values[0])
-    if abs(diff) < 1.0:
+    if abs(diff) < 0.66666:
         trend = '-'
     elif diff < 0:
         trend = '\\'
@@ -281,6 +297,9 @@ def fuckometer_update():
 # FIXME: defining this globally is a nasty kludge
 fuckometer = Periodic(fuckometer_update, 60, history=60)
 
+
+def updatelcd(lines):
+    mtxorb.lcdwrite(lines)
 
 if __name__ == "__main__":
     import sys
