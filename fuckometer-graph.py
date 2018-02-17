@@ -8,13 +8,13 @@ def main(args):
     import time
     import os
 
-    show_avg = False
+    show_avg = True
 
     last = 0
     for path in args:
         try:
             last = int(path)
-            print 'Showing only last %s values' % (last)
+            #print 'Showing only last %s values' % (last)
             continue
         except ValueError:
             pass
@@ -34,12 +34,16 @@ def main(args):
             parts = line.split()
 
             when = time.strptime(' '.join(parts[0:2]), "%Y-%m-%d %H:%M:%S")
+            # don't change date until 6am after midnight
+            when = time.localtime(time.mktime(when) - (6*60*60))
             # well, this is convoluted...  1 + days since 0001-01-01
             # (not sure if it does time of day or just date)
             #mplwhen = mpl.dates.datestr2num(time.strftime('%m/%d/%Y %H:%M', when))
             #when = mplwhen
-            mplwhen = mpl.dates.datestr2num(time.strftime('%m/%d/%Y', when))
-            when = mplwhen + (when[3]/24.0/365.24) + (when[4]/24.0/60.0/365.24) + (when[5]/24.0/60.0/60.0/365.24)
+            #mplwhen = mpl.dates.datestr2num(time.strftime('%m/%d/%Y', when))
+            mplwhen = mpl.dates.datestr2num(time.strftime('%Y-%m-%d %H:%M', when))
+            #when = mplwhen + (when[3]/24.0/365.24) + (when[4]/24.0/60.0/365.24) + (when[5]/24.0/60.0/60.0/365.24)
+            when = mplwhen
 
             value = float(parts[2]) * 100.0
             points.append((when, value))
@@ -49,6 +53,7 @@ def main(args):
         values = [s for t,s in points]
 
         # show dates as dates
+        #fmt = '%Y-%m-%d %H:%M'
         #fmt = '%Y-%m-%d'
         #fmt = '%m-%d'
         fmt = '%a'
@@ -58,7 +63,6 @@ def main(args):
         #pl.gca().xaxis.set_major_formatter(formatter)
         #pl.gca().xaxis.set_major_locator(mpl.dates.MonthLocator())
 
-        pl.plot(times, values, label=title)
 
         #pl.gcf().autofmt_xdate()  # tilt the labels so more can fit
 
@@ -75,16 +79,28 @@ def main(args):
                 result = sum(weighted) / float(len(weighted))
                 return result
 
-            samples = 8
+            def mean(data):
+                result = sum(data) / float(len(data))
+                return result
+
+            samples = 6
             def avg_value(n):
+                #func = end_weighted_mean
+                func = mean
                 if n == 0:
                     return values[n]
                 elif n < samples:
-                    return end_weighted_mean(values[:n+1])
+                    #return end_weighted_mean(values[:n+1])
+                    return func(values[:n+1])
                 else:
-                    return end_weighted_mean(values[n-samples:n+1])
-            avgs = [avg_value(n) for n in range(len(values))]
-            pl.plot(times, avgs, label=title + ' (avg)')
+                    #return end_weighted_mean(values[n-samples:n+1])
+                    return func(values[n-samples:n+1])
+            avgs = [avg_value(n+3) for n in range(len(values))]
+            pl.plot(times, avgs, label=title + ' (avg)',
+                    color='#ffbbbb', linewidth=8)
+
+
+        pl.plot(times, values, label=title, color='#aa4444', linewidth=2)
 
     #pl.xlabel('date'); pl.ylabel('fuckometer')
     #pl.legend(loc=0)
@@ -107,8 +123,8 @@ def main(args):
 
     pl.xlim((min(times), max(times)))
 
-    #pl.show()
     pl.savefig('/tmp/fuckometer.png')
+    #pl.show()
 
 
 if __name__ == "__main__":
