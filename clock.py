@@ -9,6 +9,12 @@ import time
 
 import mtxorb
 
+# TODO: split fuckometer data into a bunch of individual files in a subdir,
+#       with a config somewhere to select them and assign weights to each
+# TODO: generate fuckometer data points from a bunch of independent processes
+#       instead of all in one
+# TODO: split fuckometer into its own standalone script
+# TODO: maybe make each line of the display its own file, writable by anything?
 
 def main(args):
     """Fuckometer clock.
@@ -81,12 +87,19 @@ def main(args):
             fucklog()
 
         if use_lcd:
+            # TODO: use a todo list item instead of divergence
+            # TODO: show randomized data source instead of always ETD?
+            # TODO: show time worked today / this week
             lines = [
                 '%-20s' % (left),
                 '%-20s' % (deathclock()),
                 '%-20s' % (divergence()),
                 '%-20s' % (fuckometer()),
             ]
+            # reset the screen once in a while, just in case
+            # (my setup is super kludgy and misses data when bumped)
+            if random.random() < 0.01:
+                mtxorb.lcdclear()
             updatelcd(lines)
 
         sleep_until_500ms()
@@ -216,7 +229,8 @@ def deathclock_update():
     display_years = remaining_years
     fmt = 'ETD %.1f y / %i d'
     if remaining_years < 0:
-        fmt = 'You are %.2f years past your expiration date.  (%i days)'
+        #fmt = 'You are %.2f years past your expiration date.  (%i days)'
+        fmt = 'Died %.1f y ago / %i d'
         display_years = -remaining_years
     return remaining_years, (fmt % (remaining_years, remaining_years * 365.24))
 
@@ -315,6 +329,9 @@ def fuckometer_update():
     todo_list()
     factors.append(todo_list.value)
 
+    # TODO: gather the actual data async, and save it to files in a subdir,
+    #       then simply load the data here quickly
+    # TODO: give each factor a weight value
     # TODO: factor in recent monetary flow and balance
     # TODO: factor in my overall health
     #       (have I exercised lately?  is my weight too high/low?)
@@ -324,6 +341,7 @@ def fuckometer_update():
     # TODO: factor in windows open on my other computer(s)
     # TODO: factor in current weather
     # TODO: factor in the size of my combined email inboxes
+    # TODO: factor in my tkdo data (avg of top 20 items?)
 
     # average the values
     value = sum(factors) / len(factors)
