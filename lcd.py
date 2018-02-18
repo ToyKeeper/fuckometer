@@ -54,6 +54,7 @@ def main(args):
             ('email_todo', 60),
             ('steins_gate', 300),
             ('time_to_live', 300),
+            ('tkdo_scores', 60),
             ('todo_list', 180),
             ('todo_list', 180),
             ('todo_list', 180),
