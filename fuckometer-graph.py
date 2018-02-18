@@ -45,7 +45,7 @@ def main(args):
             #when = mplwhen + (when[3]/24.0/365.24) + (when[4]/24.0/60.0/365.24) + (when[5]/24.0/60.0/60.0/365.24)
             when = mplwhen
 
-            value = float(parts[2]) * 100.0
+            value = float(parts[2])
             points.append((when, value))
 
         points = [(when, value) for when,value in points]
