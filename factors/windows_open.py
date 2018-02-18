@@ -12,14 +12,14 @@ import fuckometer
 
 def main(args):
     fuckometer.init()
-    windows = OpenWindows(period=59)
+    windows = WindowsOpen(period=59)
     windows.loop()  # run forever
 
 
-class OpenWindows(fuckometer.Factor):
+class WindowsOpen(fuckometer.Factor):
     """How many windows are open on my desktop?"""
 
-    path = 'open_windows'
+    path = 'windows_open'
 
     def fucks(self):
         floor = 50.0
