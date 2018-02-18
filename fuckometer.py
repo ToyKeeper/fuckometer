@@ -244,7 +244,7 @@ class Fuckometer:
                 trend = '/'
             self.trend = trend
 
-        self.text = 'Fuckometer: %.1f%% %s' % (self.value, self.trend)
+        self.text = 'Fuckometer: %5.1f%% %s' % (self.value, self.trend)
 
         # save this value for later
         self.history.append((self.value, self.last_update_time))
