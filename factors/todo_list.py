@@ -53,7 +53,7 @@ class TodoList(fuckometer.Factor):
             text = firstline.strip()
             incomplete = []
             for line in fp:
-                if line.startswith('[_] '):
+                if line.startswith('[_] ') or line.startswith('[+] '):
                     incomplete.append(line)
             limit = min(10, len(incomplete))
             random_item = random.choice(incomplete[:limit]).strip()[4:]
