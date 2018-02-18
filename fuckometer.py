@@ -255,7 +255,7 @@ class Fuckometer:
 
     def calc_most_fucked(self):
         self.most_fucked = [(val, name) for (val, weight, name) in self.factors]
-        lines = ['%s %s' % (val/self.factor_weight_sum, name)
+        lines = ['%.2f %s' % (val/self.factor_weight_sum, name)
                 for (val, name) in self.most_fucked]
         self.fires = '\n'.join(lines)
 
@@ -279,7 +279,7 @@ class Fuckometer:
             """
             value = getattr(self, key)
             if value != getattr(self, 'prev_%s' % key):
-                print('fuckometer.save(%s)' % (key))
+                #print('fuckometer.save(%s)' % (key))
                 fp = open('%s/%s' % (basedir, name), 'w')
                 fp.write('%s\n' % str(value))
                 fp.close()

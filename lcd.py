@@ -61,8 +61,8 @@ def main(args):
             ]:
         randoms.append(fucksource(name, interval))
 
-    r1 = randomized(randoms, None, 3)
-    r2 = randomized(randoms, r1, 1)
+    r1 = randomized(randoms, None, 30)
+    r2 = randomized(randoms, r1, 10)
 
     feeds = [
             datetime,
