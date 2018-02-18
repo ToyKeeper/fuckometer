@@ -13,13 +13,13 @@ while true ; do
   ssh mutt mail/.fuckometer-count.sh > $TMP
 
   # my email TODO box
-  grep TODO "$TMP" > "$BASE/email_todo/text"
+  (echo -n 'Mail: ' && grep TODO "$TMP") > "$BASE/email_todo/text"
   N=$(grep TODO "$TMP" | awk '{ print $1 }')
   echo "$N" > "$BASE/email_todo/raw"
   python -c "import math ; print(math.sqrt($N) * 10)" > "$BASE/email_todo/fucks"
 
   # all email inboxes combined
-  grep INBOX "$TMP" > "$BASE/email_inboxes/text"
+  (echo -n 'Mail: ' && grep INBOX "$TMP") > "$BASE/email_inboxes/text"
   N=$(grep INBOX "$TMP" | awk '{ print $1 }')
   echo "$N" > "$BASE/email_inboxes/raw"
   python -c "import math ; print(math.sqrt($N))" > "$BASE/email_inboxes/fucks"

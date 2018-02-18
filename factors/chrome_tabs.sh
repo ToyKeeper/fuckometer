@@ -23,7 +23,7 @@ mkdir -p "$OUTDIR"
 while true ; do
   method2
   echo "$NUMTABS" > "$OUTDIR/raw"
-  echo "$NUMTABS" > "$OUTDIR/text"
+  printf 'Chrome Tabs: %i\n' "$NUMTABS" > "$OUTDIR/text"
   echo $(( ( $NUMTABS - 10 ) * 0.6666666 )) > "$OUTDIR/fucks"
   sleep 9m
 done
