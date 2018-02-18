@@ -12,11 +12,6 @@ import pycfg
 cfg = None
 program_name = 'fuckometer'
 
-# TODO: split fuckometer data into a bunch of individual files in a subdir,
-#       with a config somewhere to select them and assign weights to each
-# TODO: generate fuckometer data points from a bunch of independent processes
-#       instead of all in one
-# TODO: split fuckometer into its own standalone script
 # TODO: maybe make each line of the display its own file, writable by anything?
 
 def main(args):
@@ -33,9 +28,6 @@ def main(args):
     """
 
     init()
-
-    dryrun = False
-    fucklogpath = 'fuckometer.log'
 
     i = 0
     while i < len(args):
@@ -63,26 +55,20 @@ def main(args):
         os.makedirs(cfg.feedpath)
 
 
-    # periodically log the fuckometer value so I can graph it later
-    if not cfg.dryrun:
-        fucklog = PeriodicLog(cfg.logpath, fuckometer, condition=ten_minutes)
-
     f = Fuckometer(cfg)
-    #f.update()
-
-    #print('Fuckometer: %s' % (f.value))
 
     while True:
         f.update()
-        print('Fuckometer: %s' % (f.value))
+        print('%s (%s)' % (f.text, f.value))
 
         if not cfg.dryrun:
-            fucklog()
+            f.save()
+            f.log()
 
         if cfg.once:
             return
 
-        time.sleep(5)
+        time.sleep(0.5)
 
 
 def init():
@@ -207,53 +193,118 @@ class Factor:
         save('text', self.text)
 
 
-class Periodic:
-    def __init__(self, update=None, period=60*60, condition=None, history=None):
-        self.period = period
-        if update: self.update = update
-        self.updated_at = 0
-        self.value = 0.0
-        self.text = ''
-        self.condition = condition
-        self.history = history
-        if history:
-            self.values = []
+class Fuckometer:
+    def __init__(self, cfg):
+        self.cfg = cfg
+        self.factors = []
+        self.update_seconds = 15.0
+        self.history_seconds = 60 * 60
+        self.history = []
+        self.trend = ''
+        self.most_fucked = []
 
-    def __call__(self):
+    def update(self):
+        if not hasattr(self, 'last_update_time'):
+            self.last_update_time = 0.0
+        if time.time() - self.last_update_time < 5.0:
+            return self.value
+
+        #print('fuckometer.update()')
+        # load all configured "factor" data
+        self.factors = []
+        for weight, name in self.cfg.weights:
+            path = '%s/%s/fucks' % (self.cfg.feedpath, name)
+            fp = open(path, 'r')
+            value = weight * float(fp.readline())
+            fp.close()
+            self.factors.append((value, weight, name))
+
+        # sort by most to least fucked
+        self.factors.sort()
+        self.factors.reverse()
+        # calculate current fuckometer value
+        value_sum = sum([f[0] for f in self.factors])
+        weight_sum = sum([f[1] for f in self.factors])
+        self.factor_weight_sum = weight_sum
+        # save the answer
+        self.value = value_sum / weight_sum
+        self.last_update_time = time.time()
+
+        # figure out which factors contribute the most to being fucked
+        self.calc_most_fucked()
+
+        # calculate the overall trend: \, -, or /
+        if self.history:
+            diff = self.value - self.history[0][0]
+            if abs(diff) < 0.66666:
+                trend = '-'
+            elif diff < 0:
+                trend = '\\'
+            else:
+                trend = '/'
+            self.trend = trend
+
+        self.text = 'Fuckometer: %.1f%% %s' % (self.value, self.trend)
+
+        # save this value for later
+        self.history.append((self.value, self.last_update_time))
+        # get rid of all entries older than the threshold
+        while self.last_update_time - self.history[0][1] > self.history_seconds:
+            del self.history[0]
+        return self.value
+
+    def calc_most_fucked(self):
+        self.most_fucked = [(val, name) for (val, weight, name) in self.factors]
+        lines = ['%s %s' % (val/self.factor_weight_sum, name)
+                for (val, name) in self.most_fucked]
+        self.fires = '\n'.join(lines)
+
+    def save(self):
+        """Update ~/.fuckometer/* status files if the values have changed.
+        """
+        # FIXME: inherit this from cfg instead of hardcoding it?
+        basedir = '%s/.%s' % (os.environ['HOME'], program_name)
+
+        # cache last-saved values to avoid overwriting when not necessary
+        if not hasattr(self, 'prev_value'):
+            self.prev_value = None
+            self.prev_trend = None
+            self.prev_text = None
+            self.prev_fires = None
+
+        # don't save more often than necessary
+        def s(name, key):
+            """save self.key to ~/.fuckometer/name
+            (but only if self.key has changed)
+            """
+            value = getattr(self, key)
+            if value != getattr(self, 'prev_%s' % key):
+                print('fuckometer.save(%s)' % (key))
+                fp = open('%s/%s' % (basedir, name), 'w')
+                fp.write('%s\n' % str(value))
+                fp.close()
+                setattr(self, 'prev_%s' % (key), value)
+
+        s('raw', 'value')
+        s('trend', 'trend')
+        s('text', 'text')
+        s('fires', 'fires')
+
+    def log(self):
         now = time.time()
-        update_now = False
-        if self.condition:
-            if self.condition(self.updated_at, now):
-                update_now = True
-        else:
-            if now > (self.updated_at + self.period):
-                update_now = True
-        if update_now:
-            self.value, self.text = self.update()
-            self.updated_at = now
-            if self.history:
-                self.values.append(self.value)
-                while len(self.values) > self.history:
-                    del self.values[0]
-        return self.text
+        if not hasattr(self, 'prev_log_time'):
+            self.prev_log_time = now
 
-    def update(self):
-        return 0, ''
-
-
-class PeriodicLog(Periodic):
-    def __init__(self, path, obj, *args, **kwargs):
-        Periodic.__init__(self, *args, **kwargs)
-        self.path = path
-        self.obj = obj
-
-    def update(self):
-        now = time.strftime('%Y-%m-%d %H:%M:%S')
-        line = '%s\t%s\n' % (now, self.obj.value)
-        fp = open(self.path, 'a')
-        fp.write(line)
-        fp.close()
-        return 0, ''
+        log_now = ten_minutes(self.prev_log_time, now)
+        #log_now = one_minute(self.prev_log_time, now)
+        if log_now:
+            print('fuckometer.log()')
+            self.prev_log_time = now
+            stamp = time.strftime('%Y-%m-%d %H:%M:%S')
+            line = '%s\t%s\n' % (stamp, self.value)
+            fp = open(self.cfg.logpath, 'a')
+            fp.write(line)
+            fp.close()
 
 
 def six_am(prev, now):
@@ -276,105 +327,13 @@ def ten_minutes(prev, now):
     return False
 
 
-def datetime():
-    if not hasattr(datetime, 'colons'):
-        datetime.colons = True
-    else:
-        datetime.colons = not datetime.colons
-
-    if datetime.colons:
-        colon = ':'
-    else:
-        colon = ' '
-    #fmt = '%%Y-%%m-%%d %%H%s%%M%s%%S' % (colon, colon)
-    fmt = ' %%a %%m-%%d %%H%s%%M%s%%S' % (colon, colon)
-    return time.strftime(fmt)
-
-
-class Fuckometer:
-    def __init__(self, cfg):
-        self.cfg = cfg
-        self.factors = []
-
-    def update(self):
-        self.factors = []
-        for weight, name in self.cfg.weights:
-            path = '%s/%s/fucks' % (self.cfg.feedpath, name)
-            fp = open(path, 'r')
-            value = weight * float(fp.readline())
-            fp.close()
-            self.factors.append((value, weight, name))
-
-        value_sum = sum([f[0] for f in self.factors])
-        weight_sum = sum([f[1] for f in self.factors])
-        self.value = value_sum / weight_sum
-        return self.value
-
-    def save(self):
-        # FIXME: detect this instead of hardcoding it
-        path = '%s/%s/now' % (os.environ['HOME'], '.fuckometer')
-        fp = open(path, 'w')
-        fp.write('%s\n' % str(self.value))
-        fp.close()
-
-
-def fuckometer_update():
-    factors = []
-
-    # Steins;Gate world line divergence number
-    # (meh, too random, makes fuckometer less meaningful)
-    #factors.append(max(0.0, 1.0 - divergence.value))
-
-    # how close am I to death?
-    factors.append(max(0.0, (20-deathclock.value) / 10.0))
-
-    # factor in number of windows / tabs currently open
-    open_windows()
-    windows = open_windows.value
-    value = (windows - 100) / 250.0
-    value = min(1.0, max(0.0, value))
-    factors.append(value)
-
-    # factor in the state of my todo list today
-    todo_list()
-    factors.append(todo_list.value)
-
-    # TODO: gather the actual data async, and save it to files in a subdir,
-    #       then simply load the data here quickly
-    # TODO: give each factor a weight value
-    # TODO: factor in recent monetary flow and balance
-    # TODO: factor in my overall health
-    #       (have I exercised lately?  is my weight too high/low?)
-    # TODO: factor in recent news
-    # TODO: factor in how much time I've spent working today vs slacking
-    # TODO: factor in unprocessed papers?
-    # TODO: factor in windows open on my other computer(s)
-    # TODO: factor in current weather
-    # TODO: factor in the size of my combined email inboxes
-    # TODO: factor in my tkdo data (avg of top 20 items?)
-
-    # average the values
-    value = sum(factors) / len(factors)
-    value = max(0.0, value)
-
-    # include trend info: /, -, \ 
-    prev = value
-    diff = 0.0
-    if len(fuckometer.values) > 1:
-        diff = 100.0 * (value - fuckometer.values[0])
-    if abs(diff) < 0.66666:
-        trend = '-'
-    elif diff < 0:
-        trend = '\\'
-    else:
-        trend = '/'
-
-    #return value, 'Fuckometer: %.0f%%' % (100.0 * value)
-    return value, 'Fuckometer: %5.1f%% %s' % (100.0 * value, trend)
-
-
-# FIXME: defining this globally is a nasty kludge
-fuckometer = Periodic(fuckometer_update, 60, history=60)
+def one_minute(prev, now):
+    """Every minute at HH:MM:00"""
+    when = time.localtime(now)
+    #if (now-prev > 9) and (when[5]%10 == 0):
+    if (now-prev > 9) and (when[5] < 9):
+      return True
+    return False
 
 
 if __name__ == "__main__":
