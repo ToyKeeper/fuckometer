@@ -24,6 +24,6 @@ while true ; do
   method2
   echo "$NUMTABS" > "$OUTDIR/raw"
   echo "$NUMTABS" > "$OUTDIR/text"
-  echo $(( $NUMTABS - 20 )) > "$OUTDIR/fucks"
+  echo $(( ( $NUMTABS - 10 ) * 0.6666666 )) > "$OUTDIR/fucks"
   sleep 9m
 done
