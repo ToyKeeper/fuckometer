@@ -5,21 +5,46 @@ import pylab as pl
 
 
 def main(args):
+    """fuckometer-graph.py: Makes graphs of fuckometer data.
+    Usage: ./fuckometer-graph.py fuckometer.log 1008 -o fuckometer-7d.png
+    Options:
+      -o F  --out     Save graph to file F.
+      -n N  --last    Only show the last N entries.
+    """
     import time
     import os
 
     show_avg = True
 
     last = 0
-    for path in args:
-        try:
-            last = int(path)
-            #print 'Showing only last %s values' % (last)
-            continue
-        except ValueError:
-            pass
+    sourcefiles = []
+    destfile = '/tmp/fuckometer.png'
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in ('-h', '--help'):
+            return usage()
+        elif a in ('-o', '--out'):
+            i += 1
+            a = args[i]
+            destfile = a
+        elif a in ('-n', '--last'):
+            i += 1
+            a = args[i]
+            last = int(a)
+        elif a in ('-n', '--dryrun', '--dry-run'):
+            cfg.dryrun = True
+        elif a in ('-1', '--once'):
+            cfg.once = True
+        else:
+            try:
+                last = int(a)
+            except ValueError:
+                sourcefiles.append(a)
 
-    for path in args:
+        i += 1
+
+    for path in sourcefiles:
         if not os.path.exists(path):
             continue
         title = os.path.basename(path)
@@ -109,7 +134,7 @@ def main(args):
     fig = pl.gcf()
     fig.set_frameon(False)
     fig.set_size_inches(4,3)
-    fig.tight_layout(pad=0.333)
+    fig.tight_layout(pad=0.0)
 
     # adjust boundaries
     granularity = 5.0
@@ -123,8 +148,12 @@ def main(args):
 
     pl.xlim((min(times), max(times)))
 
-    pl.savefig('/tmp/fuckometer.png')
+    pl.savefig(destfile, bbox_inches='tight')
     #pl.show()
+
+
+def usage():
+    print(main.__doc__)
 
 
 if __name__ == "__main__":
