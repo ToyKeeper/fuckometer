@@ -12,10 +12,12 @@ import time
 
 import fuckometer
 
+verbose = True
+
 
 def main(args):
     fuckometer.init()
-    todo = TodoList(period=59)
+    todo = TodoList(period=30, history=120)
     todo.loop()  # run forever
 
 
@@ -25,10 +27,15 @@ class TodoList(fuckometer.Factor):
     path = 'todo_list'
 
     def fucks(self):
-        return 100.0 * self.raw
+        # smooth out the jagged sawtooth curve if possible
+        if self.history:
+            return 100.0 * sum(self.history) / len(self.history)
+        else:
+            return 100.0 * self.avg()
 
     def on_update(self):
-        print('%s fucks, %s done, %s' % (self.fucks(), self.raw, self.text))
+        if verbose:
+            print('%s fucks, %s raw, %s' % (self.fucks(), self.raw, self.text))
 
     def update(self):
         value = 0.0
@@ -55,8 +62,10 @@ class TodoList(fuckometer.Factor):
             for line in fp:
                 if line.startswith('[_] ') or line.startswith('[+] '):
                     incomplete.append(line)
-            limit = min(10, len(incomplete))
-            random_item = random.choice(incomplete[:limit]).strip()[4:]
+            limit = min(20, len(incomplete))
+            random_item = '[todo empty]'
+            if incomplete:
+                random_item = random.choice(incomplete[:limit]).strip()[4:]
         except IOError:
             firstline = ''
             random_item = '[load error]'
@@ -65,18 +74,29 @@ class TodoList(fuckometer.Factor):
         # - items done today
         # - days needing review
         # - how many "[F]" fail entries there have been today
-        pat = re.compile(r'''([\.\d]+)/(\d+) .* \((\d+) to review\)( \[F+\])?''')
+        # FIXME: parsing is annoying and messy
+        pat = re.compile(r'''([\.\d]+)/(\d+) done: [-\d]+ [A-Z][a-z][a-z]( \(\d+ to review\))?( \[F+\])?''')
         found = pat.search(firstline)
-        if found:
+        if not found:
+            random_item = '[regex error]'
+        else:
+            #for i, v in enumerate(found.groups()):
+            #    print('%s: %s' % (i+1, v))
             done = float(found.group(1))
             remaining = float(found.group(2))
-            to_review = max(1.0, float(found.group(3)))
+            to_review = 0.0001
+            if found.group(3):
+                v = found.group(3)
+                v = v[2:].split()[0]
+                to_review = max(1.0, float(v))
             failtext = found.group(4)
             failcount = 0
             if failtext:
                 for letter in failtext:
                     if 'F' == letter:
                         failcount += 1
+            #for v in ('done', 'to_review', 'failcount'):
+            #    print('%s: %s' % (v, locals()[v]))
             factors = []
             #factors.append(scale * max(0.0, (6 - done) / 6.0))
             factors.append(scale * (failcount + 6 - done) / 6.0)
