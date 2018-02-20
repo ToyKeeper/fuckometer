@@ -79,36 +79,15 @@ def main(args):
     if cfg.use_lcd:
         mtxorb.init(cfg.lcdpath)
 
-    scrolls = [0, 0, 0, 0]
-    prev_values = ['', '', '', '']
     while True:
-        #lines = ['%-20s' % (func()[:20]) for func in feeds]
-        values = ['%s' % func() for func in feeds]
-        # reset scroll position on value change
-        for i, v in enumerate(values):
-            if v != prev_values[i]:
-                scrolls[i] = 0
-                prev_values[i] = v
+        lines = render(feeds)
 
-        #lines = ['%-20s' % (v[scrolls[i]:scrolls[i]+20]) for i,v in enumerate(values)]
-        # instead of that one-liner, let's make it so long lines can scroll
-        lines = []
-        for i, v in enumerate(values):
-            # short lines are easy
-            if len(v) <= 20:
-                text = '%-20s' % (v[scrolls[i]:scrolls[i]+20])
-            else:
-                # scroll long entries in a continuous loop
-                v_orig = len(v)
-                v = v + '  ' + v
-                text = '%-20s' % (v[scrolls[i]:scrolls[i]+20])
-                scrolls[i] += 1
-                if scrolls[i] > v_orig + 2:
-                    scrolls[i] -= v_orig + 2
-
-            lines.append(text)
-
+        # display precisely every half-second at 0.0s and 0.5s
         sleep_until_500ms()
+        # update the date line again to make sure the clock is spot-on
+        for i, func in enumerate(feeds):
+            if func == datetime:
+                lines[i] = '%-20s' % (datetime()[:20])
 
         if cfg.use_lcd:
             if random.random() < 0.01:
@@ -151,18 +130,14 @@ def sleep_until_500ms():
 
 
 def datetime():
-    if not hasattr(datetime, 'colons'):
-        datetime.colons = True
-    else:
-        datetime.colons = not datetime.colons
-
-    if datetime.colons:
+    now = time.time()
+    if (now % 1.0) < 0.5:
         colon = ':'
     else:
         colon = ' '
-    #fmt = '%%Y-%%m-%%d %%H%s%%M%s%%S' % (colon, colon)
+
     fmt = ' %%a %%m-%%d %%H%s%%M%s%%S' % (colon, colon)
-    return time.strftime(fmt)
+    return time.strftime(fmt, time.localtime(now))
 
 
 def periodic(path, interval=10):
@@ -228,6 +203,46 @@ def randomized(sources, compare=None, interval=10):
         return sources[func.index]()
 
     return func
+
+
+def render(feeds):
+    # remember state
+    if not hasattr(render, 'scrolls'):
+        render.scrolls = [0, 0, 0, 0]
+    if not hasattr(render, 'prev_values'):
+        render.prev_values = ['', '', '', '']
+
+    # convenience
+    scrolls = render.scrolls
+    prev_values = render.prev_values
+
+    values = ['%s' % func() for func in feeds]
+
+    # reset scroll position on value change
+    for i, v in enumerate(values):
+        if v != prev_values[i]:
+            scrolls[i] = 0
+            prev_values[i] = v
+
+    #lines = ['%-20s' % (v[scrolls[i]:scrolls[i]+20]) for i,v in enumerate(values)]
+    # instead of that simple solution, let's make long lines scroll
+    lines = []
+    for i, v in enumerate(values):
+        # short lines are easy
+        if len(v) <= 20:
+            text = '%-20s' % (v[scrolls[i]:scrolls[i]+20])
+        else:
+            # scroll long entries in a continuous loop
+            v_orig = len(v)
+            v = v + '  ' + v
+            text = '%-20s' % (v[scrolls[i]:scrolls[i]+20])
+            scrolls[i] += 1
+            if scrolls[i] > v_orig + 2:
+                scrolls[i] -= v_orig + 2
+
+        lines.append(text)
+
+    return lines
 
 
 if __name__ == "__main__":
