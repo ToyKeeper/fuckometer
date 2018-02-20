@@ -10,6 +10,7 @@ import pycfg
 cfg = None
 program_name = 'fuckometer_lcd'
 
+# TODO: maybe make each line of the display its own file, writable by anything?
 
 def main(args):
     """Fuckometer LCD clock.
@@ -55,14 +56,14 @@ def main(args):
             ('steins_gate', 300),
             ('time_to_live', 300),
             ('tkdo_scores', 60),
-            ('todo_list', 180),
-            ('todo_list', 180),
-            ('todo_list', 180),
+            ('todo_list', 300),
+            ('todo_list', 300),
+            ('todo_list', 300),
             ('windows_open', 60),
             ]:
         randoms.append(fucksource(name, interval))
 
-    r1 = randomized(randoms, None, 30)
+    r1 = randomized(randoms, None, 31)
     r2 = randomized(randoms, r1, 10)
 
     feeds = [
@@ -80,6 +81,8 @@ def main(args):
     while True:
         lines = ['%-20s' % (func()[:20]) for func in feeds]
 
+        sleep_until_500ms()
+
         if cfg.use_lcd:
             if random.random() < 0.01:
                 mtxorb.lcdclear()
@@ -88,8 +91,6 @@ def main(args):
             print('-' * 20)
             for line in lines:
                 print(line)
-
-        sleep_until_500ms()
 
 
 def usage():
@@ -186,6 +187,8 @@ def randomized(sources, compare=None, interval=10):
         if (now - func.rotated_at) > interval:
             # randomize...
             # but don't randomly pick the same as another randomizer instance
+            # FIXME: make avoidance work both ways,
+            #        two instances avoiding each other, instead of just one
             comp = None
             if compare:
                 comp = compare.index
