@@ -11,6 +11,7 @@ cfg = None
 program_name = 'fuckometer_lcd'
 
 # TODO: maybe make each line of the display its own file, writable by anything?
+# TODO: don't hardcode LCD size
 
 def main(args):
     """Fuckometer LCD clock.
@@ -78,8 +79,34 @@ def main(args):
     if cfg.use_lcd:
         mtxorb.init(cfg.lcdpath)
 
+    scrolls = [0, 0, 0, 0]
+    prev_values = ['', '', '', '']
     while True:
-        lines = ['%-20s' % (func()[:20]) for func in feeds]
+        #lines = ['%-20s' % (func()[:20]) for func in feeds]
+        values = ['%s' % func() for func in feeds]
+        # reset scroll position on value change
+        for i, v in enumerate(values):
+            if v != prev_values[i]:
+                scrolls[i] = 0
+                prev_values[i] = v
+
+        #lines = ['%-20s' % (v[scrolls[i]:scrolls[i]+20]) for i,v in enumerate(values)]
+        # instead of that one-liner, let's make it so long lines can scroll
+        lines = []
+        for i, v in enumerate(values):
+            # short lines are easy
+            if len(v) <= 20:
+                text = '%-20s' % (v[scrolls[i]:scrolls[i]+20])
+            else:
+                # scroll long entries in a continuous loop
+                v_orig = len(v)
+                v = v + '  ' + v
+                text = '%-20s' % (v[scrolls[i]:scrolls[i]+20])
+                scrolls[i] += 1
+                if scrolls[i] > v_orig + 2:
+                    scrolls[i] -= v_orig + 2
+
+            lines.append(text)
 
         sleep_until_500ms()
 
