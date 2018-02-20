@@ -15,7 +15,8 @@ method1() {
 method2() {
   # estimate tabs from number of processes
   NUMTABS=$(ps axuwww | grep chro | egrep -v 'grep|python|sh$' | wc -l)
-  NUMTABS=$(( $NUMTABS * 1.33333 ))
+  #NUMTABS=$(( $NUMTABS * 1.33333 ))
+  NUMTABS=$(( $NUMTABS * 1.25 ))
 }
 
 mkdir -p "$OUTDIR"
