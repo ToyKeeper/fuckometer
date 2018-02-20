@@ -12,7 +12,6 @@ import pycfg
 cfg = None
 program_name = 'fuckometer'
 
-# TODO: maybe make each line of the display its own file, writable by anything?
 
 def main(args):
     """Fuckometer.  Calculates how fucked you are.
@@ -167,7 +166,7 @@ class Factor:
             self.update()
             self.updated_at = now
             if self.history_size:
-                self.values.append(self.raw)
+                self.history.append(self.raw)
                 while len(self.history) > self.history_size:
                     del self.history[0]
             self.log()
@@ -214,9 +213,14 @@ class Fuckometer:
         self.factors = []
         for weight, name in self.cfg.weights:
             path = '%s/%s/fucks' % (self.cfg.feedpath, name)
-            fp = open(path, 'r')
-            value = weight * float(fp.readline())
-            fp.close()
+            try:
+                fp = open(path, 'r')
+                value = weight * float(fp.readline())
+                fp.close()
+            except IOError:
+                value = 50.0
+            except ValueError:
+                value = 50.0
             self.factors.append((value, weight, name))
 
         # sort by most to least fucked
@@ -322,7 +326,7 @@ def ten_minutes(prev, now):
     """Every ten minutes at HH:M0:00"""
     when = time.localtime(now)
     #if (now-prev > 9) and (when[5]%10 == 0):
-    if (now-prev > 60*9) and (when[4]%10 == 0):
+    if (now-prev > 61) and (when[4]%10 == 0):
       return True
     return False
 
@@ -330,8 +334,8 @@ def ten_minutes(prev, now):
 def one_minute(prev, now):
     """Every minute at HH:MM:00"""
     when = time.localtime(now)
-    #if (now-prev > 9) and (when[5]%10 == 0):
-    if (now-prev > 9) and (when[5] < 9):
+    #if (now-prev > 10) and (when[5]%10 == 0):
+    if (now-prev > 10) and (when[5] < 9):
       return True
     return False
 
