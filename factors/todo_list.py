@@ -13,6 +13,11 @@ import time
 import fuckometer
 
 verbose = True
+# how many tasks per day should we aim for?
+daily_target = 6.0
+# reset todo status daily at this hour
+# (should be a time when you are almost always asleep)
+morning_hour = 6
 
 
 def main(args):
@@ -40,20 +45,9 @@ class TodoList(fuckometer.Factor):
     def update(self):
         value = 0.0
         text = ''
+        random_item = '[none yet]'
 
-        # set low expectations in the morning, but rise throughout the day
-        # (can't be expected to have stuff done already in the morning)
-        # FIXME: use a cleaner method of shifting everything by 6 hours
-        scale = 1.0
-        now = time.localtime()
-        compare = list(now)
-        morning_hour = 6
-        if now[3] < morning_hour:  # if it's after midnight, measure from previous morning
-            compare[2] -= 1
-        compare[3:8] = [morning_hour, 0, 0, 0, 0]
-        scale = (time.mktime(now) - time.mktime(compare)) / (24.0*60*60)
-        #print('\ntodo_list_update(): scale=%.2f' % (scale))
-
+        # first, load up and parse the data
         try:
             fp = open('%s/ram/.todo.slate' % (os.environ['HOME']))
             firstline = fp.readline()
@@ -68,7 +62,9 @@ class TodoList(fuckometer.Factor):
                 random_item = random.choice(incomplete[:limit]).strip()[4:]
         except IOError:
             firstline = ''
-            random_item = '[load error]'
+            self.text = '[load error]'
+            return
+
         # TODO: maybe factor in results from yesterday too?
         # factor in a few things...
         # - items done today
@@ -78,35 +74,61 @@ class TodoList(fuckometer.Factor):
         pat = re.compile(r'''([\.\d]+)/(\d+) done: [-\d]+ [A-Z][a-z][a-z]( \(\d+ to review\))?( \[F+\])?''')
         found = pat.search(firstline)
         if not found:
-            random_item = '[regex error]'
-        else:
-            #for i, v in enumerate(found.groups()):
-            #    print('%s: %s' % (i+1, v))
-            done = float(found.group(1))
-            remaining = float(found.group(2))
-            to_review = 0.0001
-            if found.group(3):
-                v = found.group(3)
-                v = v[2:].split()[0]
-                to_review = max(1.0, float(v))
-            failtext = found.group(4)
-            failcount = 0
-            if failtext:
-                for letter in failtext:
-                    if 'F' == letter:
-                        failcount += 1
-            #for v in ('done', 'to_review', 'failcount'):
-            #    print('%s: %s' % (v, locals()[v]))
-            factors = []
-            #factors.append(scale * max(0.0, (6 - done) / 6.0))
-            factors.append(scale * (failcount + 6 - done) / 6.0)
-            factors.append(scale * max(0.0, min(1.0, math.log(to_review, 100))))
-            value = sum(factors) / len(factors)
+            self.text = '[regex error]'
+            return
+
+        # parse the rest
+        #for i, v in enumerate(found.groups()):
+        #    print('%s: %s' % (i+1, v))
+        done = float(found.group(1))
+        remaining = float(found.group(2))
+        to_review = 0.0001
+        if found.group(3):
+            v = found.group(3)
+            v = v[2:].split()[0]
+            to_review = max(1.0, float(v))
+        failtext = found.group(4)
+        failcount = 0
+        if failtext:
+            for letter in failtext:
+                if 'F' == letter:
+                    failcount += 1
+        #for v in ('done', 'to_review', 'failcount'):
+        #    print('%s: %s' % (v, locals()[v]))
+
+        # calculate scores
+        factors = []
+
+        # daily task obligation vs completion
+        obligation, completion = self.calculate_done(done, failcount)
+
+        # how much are we expected to have done right now, and how much
+        # is actually done?
+        factors.append(obligation - completion)
+
+        # build-up of days needing review
+        factors.append(max(0.0, min(1.0, math.log(to_review, 100))))
+
+        # final value is the average of all factors
+        value = sum(factors) / len(factors)
+
         #print('\ntodo_list_update(%.2f * (%s, %s)) -> %.2f (%s)' % (scale, done, to_review, value, factors))
 
         self.raw = value
         self.text = random_item
 
+    def calculate_done(self, done, failcount):
+        # set low expectations in the morning, but rise throughout the day
+        # (can't be expected to have stuff done already in the morning)
+        now = time.localtime(time.time() - (60*60*morning_hour))
+        scale = (now[3]/24.0) + (now[4]/24.0/60) + (now[5]/24.0/60/60)
+        # smooth curve from 0 to 1
+        obligation = (1.0 - math.cos(scale * math.pi)) / 2.0
+        completion = (done - failcount) / daily_target
+        #print('\ntodo_list_update(): obligation=%.2f, completion=%.2f' \
+        #        % (obligation, completion))
+
+        return obligation, completion
 
 if __name__ == "__main__":
     import sys
