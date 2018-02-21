@@ -167,6 +167,10 @@ class Factor:
             self.updated_at = now
             if self.history_size:
                 self.history.append(self.raw)
+                # if not populated yet, populate history
+                while len(self.history) < self.history_size:
+                    self.history.append(self.raw)
+                # don't grow beyond intended size
                 while len(self.history) > self.history_size:
                     del self.history[0]
             self.log()
