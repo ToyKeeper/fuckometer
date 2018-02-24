@@ -38,6 +38,7 @@ def main(args):
             return
         elif a in ('-t', '--text'):
             cfg.use_lcd = False
+            cfg.use_terminal = True
         elif a in ('-l', '--lcd'):
             i += 1
             a = args[i]
@@ -56,7 +57,8 @@ def main(args):
             ('email_todo', 60),
             ('steins_gate', 300),
             ('time_to_live', 300),
-            ('tkdo_scores', 60),
+            ('tkdo_scores', 300),
+            ('tkdo_scores', 300),
             ('todo_list', 300),
             ('todo_list', 300),
             ('todo_list', 300),
@@ -90,10 +92,20 @@ def main(args):
                 lines[i] = '%-20s' % (datetime()[:20])
 
         if cfg.use_lcd:
-            if random.random() < 0.01:
-                mtxorb.lcdclear()
-            mtxorb.lcdwrite(lines)
-        else:
+            ## work around a big in my jerry-rigged setup
+            #if random.random() < 0.01:
+            #    mtxorb.lcdclear()
+            # replace trend char with a graphic
+            # (because MtxOrb displays have no backslash glyph)
+            lcopy = lines[:]
+            #trends = {'/':0, '-':4, '\\':2}  # bigchars font
+            trends = {'/':1, '-':2, '\\':3}  # my custom font
+            trend = lcopy[3][-1]
+            if trend in trends:
+                lcopy[3] = lcopy[3][:-1] + chr(trends[trend])
+            # actually update the screen
+            mtxorb.lcdwrite(lcopy)
+        if cfg.use_terminal:
             print('-' * 20)
             for line in lines:
                 print(line)
@@ -108,6 +120,9 @@ def set_defaults(cfg):
 
     cfg.doc(fuckometer_path='Where to find the .fuckometer/ dir.')
     cfg.default(fuckometer_path='%s/.fuckometer' % (home))
+
+    cfg.doc(use_terminal=['If true, print to the terminal.'])
+    cfg.default(use_terminal=True)
 
     cfg.doc(use_lcd=['If true, use an external LCD.',
                      'If false, print text in terminal.'])
