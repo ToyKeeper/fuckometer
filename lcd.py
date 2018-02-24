@@ -163,7 +163,8 @@ def periodic(path, interval=10):
             #print('update(%s)' % (path))
             func.updated_at = now
             fp = open(path)
-            func.value = fp.readline().strip()
+            lines = [l.strip() for l in fp.readlines() if l.strip()]
+            func.value = random.choice(lines)
             fp.close()
         return func.value
 
