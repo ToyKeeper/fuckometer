@@ -9,10 +9,12 @@ import subprocess
 
 import fuckometer
 
+verbose = False
+
 
 def main(args):
     fuckometer.init()
-    tkdo = TKDO(period=120)
+    tkdo = TKDO(period=120, history=30)
     tkdo.loop()  # run forever
 
 
@@ -22,10 +24,15 @@ class TKDO(fuckometer.Factor):
     path = 'tkdo_scores'
 
     def fucks(self):
-        return max(0.0, self.raw)
+        # smooth out the curve if possible
+        if self.history:
+            return max(0.0, sum(self.history) / len(self.history))
+        else:
+            return max(0.0, self.raw)
 
     def on_update(self):
-        print(self.text)
+        if verbose:
+            print('%s fucks, %s raw, %s' % (self.fucks(), self.raw, self.text))
 
     def update(self):
         """Take the average of the top 20 TKDO tasks,

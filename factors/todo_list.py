@@ -38,7 +38,7 @@ class TodoList(fuckometer.Factor):
         if self.history:
             return 100.0 * sum(self.history) / len(self.history)
         else:
-            return 100.0 * self.avg()
+            return 100.0 * self.raw
 
     def on_update(self):
         if verbose:
