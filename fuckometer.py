@@ -85,6 +85,9 @@ def usage():
 def set_defaults(cfg):
     rcdir = '%s/.%s' % (os.environ['HOME'], program_name)
 
+    cfg.doc(verbose="Print extra info.")
+    cfg.default(verbose=False)
+
     cfg.doc(dryrun="Don't log computed data.")
     cfg.default(dryrun=False)
 
@@ -252,7 +255,7 @@ class Fuckometer:
                 trend = '/'
             self.trend = trend
 
-        self.text = 'Fuckometer: %5.1f%% %s' % (self.value, self.trend)
+        self.text = 'Fuckometer:%6.2f%% %s' % (self.value, self.trend)
 
         # save this value for later
         self.history.append((self.value, self.last_update_time))
