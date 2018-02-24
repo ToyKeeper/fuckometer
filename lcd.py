@@ -92,9 +92,6 @@ def main(args):
                 lines[i] = '%-20s' % (datetime()[:20])
 
         if cfg.use_lcd:
-            ## work around a big in my jerry-rigged setup
-            #if random.random() < 0.01:
-            #    mtxorb.lcdclear()
             # replace trend char with a graphic
             # (because MtxOrb displays have no backslash glyph)
             lcopy = lines[:]

@@ -3,7 +3,6 @@
 import time
 
 lcd = None
-lcddelay = 0.001
 
 
 def main(args):
@@ -18,45 +17,26 @@ def main(args):
     lcdwrite(lines)
 
 
-def chr2lcd(c):
-    return ord(c)
-    #c = ord(c)
-    #if c < 128:
-    #    return 1 + (254 - (c<<1))
-    #return c
-
-
 def lcdclear():
-    #lcd.write('8')
     lcd.write('\xfe\x58')
     lcd.flush()
-    time.sleep(lcddelay)
 
 
 def reset_cursor():
     lcd.write('\xfe\x48')
     lcd.flush()
-    time.sleep(lcddelay)
 
 
 def lcdwrite(lines):
     #lcdclear()
     reset_cursor()
 
-    #lines = lines[:]
-    #f=0
-    #lines[0] = ''.join(chr(n) for n in range(f,f+8))
-
     seq = 0, 2, 1, 3
     for n in seq:
         line = lines[n][:20]
+        # replace Yen symbol (WTF, MtxOrb?) w/ custom backslash glyph
         line = line.replace('\\', chr(0))
         lcd.write(line)
-        #for c in line:
-        #    c = (chr2lcd(c))
-        #    lcd.write(chr(c))
-        #    lcd.flush()
-        #    time.sleep(lcddelay)
     lcd.flush()
 
 
