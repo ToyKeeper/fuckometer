@@ -12,7 +12,6 @@ import time
 
 import fuckometer
 
-verbose = True
 # how many tasks per day should we aim for?
 daily_target = 8.0
 # reset todo status daily at this hour
@@ -41,7 +40,7 @@ class TodoList(fuckometer.Factor):
             return 100.0 * self.raw
 
     def on_update(self):
-        if verbose:
+        if fuckometer.cfg.verbose:
             print('%s fucks, %s raw, %s' % (self.fucks(), self.raw, self.text))
 
     def update(self):
@@ -62,6 +61,7 @@ class TodoList(fuckometer.Factor):
             random_item = '[todo empty]'
             if incomplete:
                 random_item = random.choice(incomplete[:limit]).strip()[4:]
+                random_items = [l.strip()[4:] for l in incomplete[:limit]]
         except IOError:
             firstline = ''
             self.text = '[load error]'
@@ -117,7 +117,8 @@ class TodoList(fuckometer.Factor):
         #print('\ntodo_list_update(%.2f * (%s, %s)) -> %.2f (%s)' % (scale, done, to_review, value, factors))
 
         self.raw = value
-        self.text = random_item
+        #self.text = random_item
+        self.text = '\n'.join(random_items)
 
     def calculate_done(self, done, failcount):
         # set low expectations in the morning, but rise throughout the day

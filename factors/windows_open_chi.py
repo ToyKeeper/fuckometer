@@ -32,7 +32,8 @@ class WindowsOpen(fuckometer.Factor):
         return 100.0 * value
 
     def on_update(self):
-        print('%.1f fucks: %s' % (self.fucks(), self.text))
+        if fuckometer.cfg.verbose:
+            print('%.1f fucks: %s' % (self.fucks(), self.text))
 
     def update(self):
         try:

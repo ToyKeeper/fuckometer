@@ -9,8 +9,6 @@ import subprocess
 
 import fuckometer
 
-verbose = False
-
 
 def main(args):
     fuckometer.init()
@@ -31,7 +29,7 @@ class TKDO(fuckometer.Factor):
             return max(0.0, self.raw)
 
     def on_update(self):
-        if verbose:
+        if fuckometer.cfg.verbose:
             print('%s fucks, %s raw, %s' % (self.fucks(), self.raw, self.text))
 
     def update(self):
@@ -76,7 +74,8 @@ class TKDO(fuckometer.Factor):
 
         self.raw = avg
         #self.text = 'TKDO: %.1f' % (self.raw)
-        self.text = randitem
+        #self.text = randitem
+        self.text = '\n'.join(items)
 
 
 if __name__ == "__main__":
