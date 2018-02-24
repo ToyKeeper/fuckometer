@@ -14,10 +14,12 @@ import fuckometer
 
 verbose = True
 # how many tasks per day should we aim for?
-daily_target = 6.0
+daily_target = 8.0
 # reset todo status daily at this hour
 # (should be a time when you are almost always asleep)
 morning_hour = 6
+# how many hours before we start ramping up?
+grace_period = 4
 
 
 def main(args):
@@ -120,10 +122,15 @@ class TodoList(fuckometer.Factor):
     def calculate_done(self, done, failcount):
         # set low expectations in the morning, but rise throughout the day
         # (can't be expected to have stuff done already in the morning)
-        now = time.localtime(time.time() - (60*60*morning_hour))
-        scale = (now[3]/24.0) + (now[4]/24.0/60) + (now[5]/24.0/60/60)
-        # smooth curve from 0 to 1
-        obligation = (1.0 - math.cos(scale * math.pi)) / 2.0
+        daylength = 24.0 - grace_period
+        now = time.localtime(time.time() - (60*60*(morning_hour+grace_period)))
+        if now[3] >= daylength:
+            obligation = 0.0
+        else:
+            scale = (now[3]/daylength) + (now[4]/daylength/60) \
+                    + (now[5]/daylength/60/60)
+            # smooth curve from 0 to 1
+            obligation = (1.0 - math.cos(scale * math.pi)) / 2.0
         completion = (done - failcount) / daily_target
         #print('\ntodo_list_update(): obligation=%.2f, completion=%.2f' \
         #        % (obligation, completion))
