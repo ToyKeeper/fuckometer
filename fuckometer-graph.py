@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import math
 import matplotlib as mpl
 import pylab as pl
 
@@ -127,13 +128,41 @@ def main(args):
 
         pl.plot(times, values, label=title, color='#aa4444', linewidth=2)
 
+    # shade every other day
+    begin = times[0]
+    end = times[-1]
+    span = end - begin
+    color = '#000000'
+    alpha = 0.05
+    if span > 0.1:
+        #print('%.2f days spanned.' % (span))
+        # ensure today is never shaded
+        odd = 0
+        if span % 2 > 1:
+            odd = 1
+            #print('Odd.')
+        # kludge: was backward when 0.01 < fpart(span) < 0.49
+        if span % 1 < 0.5:
+            odd -= 1
+            #print('Odder.')
+        # add a grey background to yesterday and every 2 days before
+        for offset in range(odd, int(math.ceil(span)+1), 2):
+            left = math.floor(begin) + offset
+            right = left + 1
+            pl.axvspan(left, right, facecolor=color, alpha=alpha,
+                       ymax=1.0, ymin=0.0)
+
     #pl.xlabel('date'); pl.ylabel('fuckometer')
     #pl.legend(loc=0)
 
     # get rid of the effing padding
     fig = pl.gcf()
     fig.set_frameon(False)
-    fig.set_size_inches(4,3)
+    # change image size based on the amount of data
+    if len(values) < 500:
+        fig.set_size_inches(4,3)
+    else:
+        fig.set_size_inches(8,3)
     fig.tight_layout(pad=0.0)
 
     # adjust boundaries
