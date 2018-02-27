@@ -47,6 +47,7 @@ class TodoList(fuckometer.Factor):
         value = 0.0
         text = ''
         random_item = '[none yet]'
+        random_items = [random_item]
 
         # first, load up and parse the data
         try:
@@ -59,6 +60,7 @@ class TodoList(fuckometer.Factor):
                     incomplete.append(line)
             limit = min(20, len(incomplete))
             random_item = '[todo empty]'
+            random_items = [random_item]
             if incomplete:
                 random_item = random.choice(incomplete[:limit]).strip()[4:]
                 random_items = [l.strip()[4:] for l in incomplete[:limit]]
