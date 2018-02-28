@@ -166,7 +166,7 @@ def main(args):
     fig.tight_layout(pad=0.0)
 
     # adjust boundaries
-    granularity = 5.0
+    granularity = 2.0
     highest = max(values)
     lowest = min(values)
     #highest = max(100, max(values))
