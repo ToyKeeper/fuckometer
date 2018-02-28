@@ -338,11 +338,20 @@ def six_am(prev, now):
     return False
 
 
+def hourly(prev, now):
+    """Every hour on the hour"""
+    when = time.localtime(now)
+    if (now-prev > 60*60):  # if it has been more than an hour
+        return True
+    if (now-prev > 62) and (when[4] == 0):  # if the minute hand is 0
+      return True
+    return False
+
+
 def ten_minutes(prev, now):
     """Every ten minutes at HH:M0:00"""
     when = time.localtime(now)
-    #if (now-prev > 9) and (when[5]%10 == 0):
-    if (now-prev > 61) and (when[4]%10 == 0):
+    if (now-prev > 62) and (when[4]%10 == 0):
       return True
     return False
 
