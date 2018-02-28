@@ -52,6 +52,17 @@ def set_custom_chars():
             (0, 0, 0, 0, 0),
             ]
 
+    up = [
+            (0, 0, 1, 0, 0),
+            (0, 1, 1, 1, 0),
+            (1, 0, 1, 0, 1),
+            (0, 0, 1, 0, 0),
+            (0, 0, 1, 0, 0),
+            (0, 0, 1, 0, 0),
+            (0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0),
+            ]
+
     upright = [
             (0, 1, 1, 1, 1),
             (0, 0, 0, 1, 1),
@@ -72,6 +83,17 @@ def set_custom_chars():
             (0, 0, 0, 1, 0),
             (0, 0, 1, 0, 0),
             (0, 0, 0, 0, 0),
+            ]
+
+    down = [
+            (0, 0, 0, 0, 0),
+            (0, 0, 0, 0, 0),
+            (0, 0, 1, 0, 0),
+            (0, 0, 1, 0, 0),
+            (0, 0, 1, 0, 0),
+            (1, 0, 1, 0, 1),
+            (0, 1, 1, 1, 0),
+            (0, 0, 1, 0, 0),
             ]
 
     downright = [
@@ -95,7 +117,7 @@ def set_custom_chars():
             result.append(chr(x))
         return ''.join(result)
 
-    customs = (backslash, upright, right, downright)
+    customs = (backslash, upright, right, downright, up, down)
 
     for i, custom in enumerate(customs):
         data = to_bytes(custom)

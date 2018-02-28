@@ -206,8 +206,8 @@ class Fuckometer:
     def __init__(self, cfg):
         self.cfg = cfg
         self.factors = []
-        self.update_seconds = 15.0
-        self.history_seconds = 60 * 60
+        self.update_seconds = 5.0
+        self.history_seconds = 60 * 30
         self.history = []
         self.trend = ''
         self.most_fucked = []
@@ -215,7 +215,7 @@ class Fuckometer:
     def update(self):
         if not hasattr(self, 'last_update_time'):
             self.last_update_time = 0.0
-        if time.time() - self.last_update_time < 5.0:
+        if time.time() - self.last_update_time < self.update_seconds:
             return self.value
 
         #print('fuckometer.update()')
@@ -250,10 +250,16 @@ class Fuckometer:
         # calculate the overall trend: \, -, or /
         if self.history:
             diff = self.value - self.history[0][0]
-            if abs(diff) < 0.66666:
+            per_hour = diff * (60*60) / len(self.history)
+            #print('trend: %s items, %.2f per_hour' % (len(self.history), per_hour))
+            if abs(per_hour) < 0.5:
                 trend = '-'
-            elif diff < 0:
+            elif per_hour < -2:
+                trend = 'v'
+            elif per_hour < 0:
                 trend = '\\'
+            elif per_hour > 2:
+                trend = '^'
             else:
                 trend = '/'
             self.trend = trend

@@ -96,7 +96,7 @@ def main(args):
             # (because MtxOrb displays have no backslash glyph)
             lcopy = lines[:]
             #trends = {'/':0, '-':4, '\\':2}  # bigchars font
-            trends = {'/':1, '-':2, '\\':3}  # my custom font
+            trends = {'/':1, '-':2, '\\':3, '^':4, 'v':5}  # my custom font
             trend = lcopy[3][-1]
             if trend in trends:
                 lcopy[3] = lcopy[3][:-1] + chr(trends[trend])
