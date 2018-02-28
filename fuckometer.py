@@ -115,12 +115,14 @@ class Factor:
     """Base class for deriving fuckometer factors.
     See factors/*.py for examples of how to use this.
     """
-    def __init__(self, period=60, condition=None, history=None):
+    def __init__(self, period=60, condition=None, history=None,
+                 pad_history=True):
         self.updated_at = 0
         self.period = period
         self.condition = condition
         self.history_size = history
         self.history = []
+        self.pad_history = pad_history
         self.raw = 0.0
         self.text = ''
 
@@ -171,8 +173,9 @@ class Factor:
             if self.history_size:
                 self.history.append(self.raw)
                 # if not populated yet, populate history
-                while len(self.history) < self.history_size:
-                    self.history.append(self.raw)
+                if self.pad_history:
+                    while len(self.history) < self.history_size:
+                        self.history.append(self.raw)
                 # don't grow beyond intended size
                 while len(self.history) > self.history_size:
                     del self.history[0]
