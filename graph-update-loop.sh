@@ -1,23 +1,43 @@
 #!/bin/sh
 
-OUTFILE='/tmp/fuckometer-7d.png'
-INFILE="$HOME/.fuckometer/log"
+FUCKLOG="$HOME/.fuckometer/log"
+FACTORLOG="$HOME/.fuckometer/factors.log"
 
-OUTFILE2='/tmp/factors.png'
-INFILE2="$HOME/.fuckometer/factors.log"
-while true ; do
-  # update fuckometer graphs
-  if [ "$INFILE" -nt "$OUTFILE" ]; then
-    echo -n 'Graph update: ... ' ; date
-    ./fuckometer-graph.py "$INFILE" -o /tmp/fuckometer-7d.png -n $(expr 6 \* 24 \* 7)
-    ./fuckometer-graph.py "$INFILE" -o /tmp/fuckometer-24h.png -n $(expr 6 \* 24)
-    rsync -a /tmp/fuckometer-*.png tknet:www/tmp/
+main() {
+  while true ; do
+    update fucks 1 /tmp/fuckometer-24h.png
+    update fucks 7 /tmp/fuckometer-7d.png
+
+    update factors   7 /tmp/factors-7d.png
+    update factors 183 /tmp/factors-6m.png
+
+    sleep 10
+  done
+}
+
+update() {
+  # parse args
+  TYPE=$1 ; shift
+  PERIOD=$1 ; shift
+  OUTFILE=$1 ; shift
+  if [ "$TYPE" = 'fucks' ]; then
+    INFILE="$FUCKLOG"
+    # convert days to number of entries
+    PERIOD=$(( 6 * 24 * $PERIOD ))
+  else
+    INFILE="$FACTORLOG"
   fi
-  # update factor graphs
-  if [ "$INFILE2" -nt "$OUTFILE2" ]; then
-    echo -n 'Factor graph update: ... ' ; date
-    ./factor-graph.py "$INFILE2" -o "$OUTFILE2" -d 7
-    ./factor-graph.py "$INFILE2" -o "factors-6m.png" -d 183
+
+  # update graph
+  if [ ! -e "$OUTFILE" -o "$INFILE" -nt "$OUTFILE" ]; then
+    if [ "$TYPE" = 'fucks' ]; then
+      ./graph-fuckometer.py "$INFILE" -o "$OUTFILE" -n "$PERIOD"
+    else
+      ./graph-factors.py "$INFILE" -o "$OUTFILE" -d "$PERIOD"
+    fi
+    rsync -a "$OUTFILE" tknet:www/fuckometer/
+    echo -n "Updated '$OUTFILE' ... " ; date
   fi
-  sleep 10
-done
+}
+
+main
