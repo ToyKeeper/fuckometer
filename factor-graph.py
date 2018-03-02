@@ -96,13 +96,19 @@ def main(args):
 
             factors[name].append((when, value))
 
-        names = factors.keys()
-        names.sort()
+        # sort by most-recent value, descending
+        foo = [(-factors[name][-1][1], name) for name in factors.keys()]
+        foo.sort()
+        names = [x[-1] for x in foo]
+        # sort by name
+        #names = factors.keys()
+        #names.sort()
         for name in names:
             #print(name)
             times = [t for t,s in factors[name]]
             values = [s for t,s in factors[name]]
-            pl.plot(times, values, label=name, linewidth=2)
+            title = '%.1f %s' % (values[-1], name)
+            pl.plot(times, values, label=title, linewidth=5, alpha=0.666)
 
     # show dates as dates
     #fmt = '%Y-%m-%d %H:%M'
@@ -136,16 +142,16 @@ def main(args):
                        ymax=1.0, ymin=0.0)
 
     #pl.xlabel('date'); pl.ylabel('fuckometer')
-    pl.legend(loc=0)
+    pl.legend(loc=2, bbox_to_anchor=(1.02, 1), borderaxespad=0.0)
 
     # get rid of the effing padding
     fig = pl.gcf()
     fig.set_frameon(False)
     # change image size based on the amount of data
     if span < 3:
-        fig.set_size_inches(5,4)
+        fig.set_size_inches(4,3)
     else:
-        fig.set_size_inches(10,4)
+        fig.set_size_inches(8,3)
     fig.tight_layout(pad=0.0)
 
     # adjust boundaries
