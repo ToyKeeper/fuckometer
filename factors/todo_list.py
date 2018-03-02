@@ -86,11 +86,12 @@ class TodoList(fuckometer.Factor):
         #    print('%s: %s' % (i+1, v))
         done = float(found.group(1))
         remaining = float(found.group(2))
-        to_review = 0.0001
+        to_review = 1.0
         if found.group(3):
             v = found.group(3)
             v = v[2:].split()[0]
-            to_review = max(1.0, float(v))
+            # give a grace period of a day before punishment starts
+            to_review = max(1.0, float(v)-1)
         failtext = found.group(4)
         failcount = 0
         if failtext:
