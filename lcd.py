@@ -57,17 +57,18 @@ def main(args):
             ('email_todo', 60),
             ('steins_gate', 300),
             ('time_to_live', 300),
-            ('tkdo_scores', 300),
-            ('tkdo_scores', 300),
-            ('todo_list', 300),
-            ('todo_list', 300),
-            ('todo_list', 300),
+            ('tkdo_scores', 120),
+            ('tkdo_scores', 120),
+            ('todo_list', 120),
+            ('todo_list', 120),
+            ('todo_list', 120),
             ('windows_open', 60),
             ]:
         randoms.append(fucksource(name, interval))
+    randoms = tuple(randoms)  # so we can compare by address, not by content
 
-    r1 = randomized(randoms, None, 31)
-    r2 = randomized(randoms, r1, 10)
+    r1 = randomized(randoms, 31)
+    r2 = randomized(randoms, 10)
 
     feeds = [
             datetime,
@@ -153,22 +154,22 @@ def datetime():
 
 
 def periodic(path, interval=10):
-    def func():
-        if not hasattr(func, 'value'):
-            func.value = ''
-        if not hasattr(func, 'updated_at'):
-            func.updated_at = 0.0
+    def pfunc():
+        if not hasattr(pfunc, 'value'):
+            pfunc.value = ''
+        if not hasattr(pfunc, 'updated_at'):
+            pfunc.updated_at = 0.0
         now = time.time()
-        if (now - func.updated_at) > interval:
+        if (now - pfunc.updated_at) > interval:
             #print('update(%s)' % (path))
-            func.updated_at = now
+            pfunc.updated_at = now
             fp = open(path)
             lines = [l.strip() for l in fp.readlines() if l.strip()]
-            func.value = random.choice(lines)
+            pfunc.value = random.choice(lines)
             fp.close()
-        return func.value
+        return pfunc.value
 
-    return func
+    return pfunc
 
 
 def fucksource(name, interval=10):
@@ -183,37 +184,48 @@ def fuckometer():
 
 
 def topfire():
-    # FIXME: formatting is bad
-    # FIXME: should show more than just the biggest fire
+    """show the fuckometer contribution of a random conduit"""
     interval = 60
     path = '%s/fires' % (cfg.fuckometer_path)
     return periodic(path, interval)
 
 
-def randomized(sources, compare=None, interval=10):
+def randomized(sources, interval=10):
+    """Return a callable which grabs from a different conduit every
+    'interval' seconds, and make sure not to return the same source as
+    any other instance is currently using.
+    """
+    if not hasattr(randomized, 'instances'):
+       # keep track of what each instance is doing
+        randomized.instances = []
+
+    # call this to get actual data from a random conduit
     def func():
         # init
-        if not hasattr(func, 'index'):
-            func.index = 0
         if not hasattr(func, 'rotated_at'):
             func.rotated_at = 0.0
+            func.index = 0
 
+        # only rotate every 'interval' seconds, at maximum
         now = time.time()
         if (now - func.rotated_at) > interval:
             # randomize...
             # but don't randomly pick the same as another randomizer instance
-            # FIXME: make avoidance work both ways,
-            #        two instances avoiding each other, instead of just one
-            comp = None
-            if compare:
-                comp = compare.index
-            func.index = comp
-            while func.index == comp:
+            others = [i['self'].index for i in randomized.instances
+                      if (i['sources'] == sources)
+                      and (i['self'] != func)]
+            # pick randomly at least once
+            func.index = random.randint(0, len(sources)-1)
+            while func.index in others:
                 func.index = random.randint(0, len(sources)-1)
 
             func.rotated_at = now
 
+        # grab and return the actual conduit data
         return sources[func.index]()
+
+    func.index = -1  # no item chosen yet
+    randomized.instances.append(dict(self=func, sources=sources))
 
     return func
 
