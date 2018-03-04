@@ -11,11 +11,17 @@ def main(args):
     Options:
       -o F  --out     Save graph to file F.
       -n N  --last    Only show the last N entries.
+      -c    --conky   Format graph for use in conky.
     """
     import time
     import os
 
     show_avg = True
+    conky_mode = False
+    conky_scale = 1.0
+    linecolor = '#aa4444'
+    avgcolor = '#ffbbbb'
+    shade = '#000000'
 
     last = 0
     sourcefiles = []
@@ -33,10 +39,20 @@ def main(args):
             i += 1
             a = args[i]
             last = int(a)
-        elif a in ('-n', '--dryrun', '--dry-run'):
-            cfg.dryrun = True
-        elif a in ('-1', '--once'):
-            cfg.once = True
+        elif a in ('-c', '--conky'):
+            conky_mode = True
+            conky_scale = 0.4
+            pl.rcParams['axes.facecolor'] = 'black'
+            pl.rcParams['figure.facecolor'] = 'black'
+            pl.rcParams['figure.edgecolor'] = 'black'
+            pl.rcParams['savefig.edgecolor'] = 'black'
+            pl.rcParams['savefig.facecolor'] = 'black'
+            pl.rcParams['savefig.pad_inches'] = 0.0
+            pl.rcParams['savefig.transparent'] = True
+            #print(pl.rcParams)
+            linecolor = '#ff0000'
+            avgcolor = '#880000'
+            shade = '#ffffff'
         else:
             try:
                 last = int(a)
@@ -123,16 +139,16 @@ def main(args):
                     return func(values[n-samples:n+1])
             avgs = [avg_value(n+3) for n in range(len(values))]
             pl.plot(times, avgs, label=title + ' (avg)',
-                    color='#ffbbbb', linewidth=8)
+                    color=avgcolor, linewidth=8*conky_scale)
 
 
-        pl.plot(times, values, label=title, color='#aa4444', linewidth=2)
+        pl.plot(times, values, label=title, color=linecolor,
+                linewidth=2*conky_scale)
 
     # shade every other day
     begin = times[0]
     end = times[-1]
     span = end - begin
-    color = '#000000'
     alpha = 0.05
     if span > 0.1:
         #print('%.2f days spanned.' % (span))
@@ -149,7 +165,7 @@ def main(args):
         for offset in range(odd, int(math.ceil(span)+1), 2):
             left = math.floor(begin) + offset
             right = left + 1
-            pl.axvspan(left, right, facecolor=color, alpha=alpha,
+            pl.axvspan(left, right, facecolor=shade, alpha=alpha,
                        ymax=1.0, ymin=0.0)
 
     #pl.xlabel('date'); pl.ylabel('fuckometer')
@@ -158,26 +174,39 @@ def main(args):
     # get rid of the effing padding
     fig = pl.gcf()
     fig.set_frameon(False)
+    bbox_inches = 'tight'
+    pad_inches = 0.05
+    granularity = 2.0
     # change image size based on the amount of data
     if len(values) < 500:
         fig.set_size_inches(4,3)
     else:
         fig.set_size_inches(8,3)
     fig.tight_layout(pad=0.0)
+    if conky_mode:
+        scale = 0.2125  # 85x63 pixels
+        fig.set_size_inches(scale*4,scale*3)
+        # scale almost as wide as possible
+        granularity = 1.0
+        # get rid of as much padding as possible
+        fig.axes[0].get_xaxis().set_visible(False)
+        fig.axes[0].get_yaxis().set_visible(False)
+        ax = pl.Axes(fig, [0,0,1,1])
+        bbox_inches = 0.0
+        pad_inches = 0.0
+        fig.subplots_adjust(left=0.01, bottom=0.03, right=1-0.02, top=1-0.03, wspace=0, hspace=0)
 
     # adjust boundaries
-    granularity = 2.0
     highest = max(values)
     lowest = min(values)
-    #highest = max(100, max(values))
     highest = highest + (granularity - (highest % granularity))
     lowest = lowest - (lowest % granularity)
-    #pl.ylim((0.0, highest))
     pl.ylim((lowest, highest))
+    #pl.ylim((0, 100))
 
     pl.xlim((min(times), max(times)))
 
-    pl.savefig(destfile, bbox_inches='tight')
+    pl.savefig(destfile, bbox_inches=bbox_inches, pad_inches=pad_inches)
     #pl.show()
 
 
