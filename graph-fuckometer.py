@@ -20,7 +20,8 @@ def main(args):
     conky_mode = False
     conky_scale = 1.0
     linecolor = '#aa4444'
-    avgcolor = '#ffbbbb'
+    avgcolor = linecolor
+    avgalpha = 0.33333
     shade = '#000000'
 
     last = 0
@@ -50,8 +51,9 @@ def main(args):
             pl.rcParams['savefig.pad_inches'] = 0.0
             pl.rcParams['savefig.transparent'] = True
             #print(pl.rcParams)
-            linecolor = '#ff0000'
-            avgcolor = '#880000'
+            linecolor = '#ff0066'
+            avgcolor = '#aa0000'
+            avgalpha = 0.66666
             shade = '#ffffff'
         else:
             try:
@@ -139,7 +141,7 @@ def main(args):
                     return func(values[n-samples:n+1])
             avgs = [avg_value(n+3) for n in range(len(values))]
             pl.plot(times, avgs, label=title + ' (avg)',
-                    color=avgcolor, linewidth=8*conky_scale)
+                    color=avgcolor, alpha=avgalpha, linewidth=8*conky_scale)
 
 
         pl.plot(times, values, label=title, color=linecolor,
@@ -194,6 +196,7 @@ def main(args):
         ax = pl.Axes(fig, [0,0,1,1])
         bbox_inches = 0.0
         pad_inches = 0.0
+        # https://stackoverflow.com/a/47999122
         fig.subplots_adjust(left=0.01, bottom=0.03, right=1-0.02, top=1-0.03, wspace=0, hspace=0)
 
     # adjust boundaries
