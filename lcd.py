@@ -55,6 +55,7 @@ def main(args):
             ('chrome_tabs', 60),
             ('email_inboxes', 60),
             ('email_todo', 60),
+            ('money_flow', 600),
             ('steins_gate', 300),
             ('time_to_live', 300),
             ('tkdo_scores', 120),
