@@ -58,7 +58,8 @@ def main(args):
 
     while True:
         f.update()
-        print('%s (%s)' % (f.text, f.value))
+        if cfg.verbose:
+            print('%s (%s)' % (f.text, f.value))
 
         if not cfg.dryrun:
             f.save()
@@ -318,7 +319,7 @@ class Fuckometer:
         log_now = ten_minutes(self.prev_log_time, now)
         #log_now = one_minute(self.prev_log_time, now)
         if log_now:
-            print('fuckometer.log()')
+            #print('fuckometer.log()')
             self.prev_log_time = now
             stamp = time.strftime('%Y-%m-%d %H:%M:%S')
             line = '%s\t%s\n' % (stamp, self.value)
