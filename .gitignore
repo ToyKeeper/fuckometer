@@ -1,3 +1,5 @@
-.*.sw?
 *~
+.*.sw?
+*.pyc
 README.html
+old/
