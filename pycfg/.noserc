@@ -1,0 +1,4 @@
+[nosetests]
+verbosity=0
+with-doctest=1
+exe=1
