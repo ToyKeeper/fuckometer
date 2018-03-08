@@ -53,7 +53,10 @@ class Beancount(fuckometer.Factor):
     def update(self):
         self.raw = self.flow_last_month()
         self.raw2 = self.current_balance
-        self.text = 'Money: $%.2f' % (self.raw)
+        sign = '+'
+        if self.raw < 0: sign = '-'
+        amt = abs(self.raw)
+        self.text = 'Money: %s$%.2f / m' % (sign, amt)
 
     def detect_start_date(self):
         """Return a date one month before the last recorded transaction.
