@@ -179,10 +179,13 @@ Using the included graphing scripts, results over time can be graphed.  These
 include:
 
 * Past 24 hours: Detailed view of one day.  To make progress each day, try to
-  get the right edge of the graph lower than the left edge.
-* Past 7 days: Somewhat wider view, to see short-term trends.
+  get the right edge of the graph lower than the left edge.  
+  ![24-hour summary](http://toykeeper.net/fuckometer/gfx/fuckometer-24h.png)
+* Past 7 days: Somewhat wider view, to see short-term trends.  
+  ![7-day summary](http://toykeeper.net/fuckometer/gfx/fuckometer-7d.png)
 * Factors for 7 days: Status of individual factors over time, to see more
-  detailed trends.
+  detailed trends.  
+  ![7-day details](http://toykeeper.net/fuckometer/gfx/factors-7d.png)
 * Factors for 6 months: Status of individual factors over a long time, to see
   progress on long-term responsibilities.
 
@@ -198,6 +201,8 @@ list, but it's similar.
 
 I also have the 24-hour fuckometer graph and some other data in my Conky status
 widget.
+
+![Conky example](http://toykeeper.net/fuckometer/gfx/fuckometer-conky-example.png)
 
 Conky config snippet:
 
