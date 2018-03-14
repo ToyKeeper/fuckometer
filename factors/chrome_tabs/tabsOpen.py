@@ -10,7 +10,7 @@ seems to support, so I made this script to extract the value I need.
 import os
 
 verbose = False
-extension_dir = os.environ['HOME'] + '/.config/chromium/Default/IndexedDB/chrome-extension_mibenjgaoiggjllplmamfhkifbodhdaa_0.indexeddb.leveldb'
+extension_dir = os.environ['HOME'] + '/.config/chromium/Default/IndexedDB/chrome-extension_bggpkennnjbpaemnpcinijlagoebbeda_0.indexeddb.leveldb'
 
 
 def main(args):
@@ -20,7 +20,10 @@ def main(args):
     infile = '%s/%s' % (extension_dir, logs[-1])
     # only read the last KiB, we don't care about old values
     fp = open(infile, 'rb')
-    fp.seek(-1024, 2)
+    try:
+        fp.seek(-1024, 2)
+    except IOError:  # file is smaller than 1024 bytes, don't care
+        pass
 
     tabsOpen = 0
 
