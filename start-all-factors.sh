@@ -7,7 +7,7 @@ for script in *.py *.sh ; do
   if [ "$pid" != "" ]; then
     STARTTHIS=n
     for p in "$pid" ; do
-      echo kill "$pid"
+      echo "=== process $pid ==="
       ps axuwww | grep -v grep | grep " $pid  "
       # TODO: ask user whether to kill this process
       echo -n 'Kill this? [y/N] '
