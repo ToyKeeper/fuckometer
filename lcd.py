@@ -64,6 +64,8 @@ def main(args):
             ('todo_list', 120),
             ('todo_list', 120),
             ('windows_open', 60),
+            ('chrome_tabs_chi', 60),
+            ('windows_open_chi', 60),
             ]:
         randoms.append(fucksource(name, interval))
     randoms = tuple(randoms)  # so we can compare by address, not by content

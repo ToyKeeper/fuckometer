@@ -7,6 +7,7 @@ import sys ; sys.path.insert(1, dirname(dirname(abspath(__file__))))
 import os
 import random
 import subprocess
+import time
 
 import fuckometer
 
