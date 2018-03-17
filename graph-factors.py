@@ -4,6 +4,13 @@ import math
 import matplotlib as mpl
 import pylab as pl
 
+import fuckometer
+
+ignore = (
+        'steins_gate',  # is mostly just clutter
+        'foo',
+        )
+
 
 def main(args):
     """factor-graph.py: Makes graphs of fuckometer factor data.
@@ -45,6 +52,12 @@ def main(args):
     if not sourcefile:
         return usage()
 
+    fuckometer.init()
+
+    weights = dict()
+    for num, name in fuckometer.cfg.weights:
+        weights[name] = num
+
     now = time.time()
     graph_start = now
     graph_end = 0.0
@@ -63,6 +76,12 @@ def main(args):
             parts = line.split('\t')
             #print('parts: %s' % (parts,))
 
+            name = parts[1].strip()
+            if name in ignore:
+                continue
+
+            value = float(parts[2])
+
             when = time.strptime(parts[0], "%Y-%m-%d %H:%M:%S")
             stamp = time.mktime(when)
 
@@ -80,9 +99,6 @@ def main(args):
                 graph_start = when
             if when > graph_end:
                 graph_end = when
-
-            name = parts[1]
-            value = float(parts[2])
 
             #print('when: %s, name: %s, value: %s' % (when, name, value))
 
@@ -108,7 +124,8 @@ def main(args):
             times = [t for t,s in factors[name]]
             values = [s for t,s in factors[name]]
             title = '%.1f %s' % (values[-1], name)
-            pl.plot(times, values, label=title, linewidth=5, alpha=0.666)
+            weight = max(0.1, min(1.0, 0.75 * weights[name] / 125.0))
+            pl.plot(times, values, label=title, linewidth=5, alpha=weight)
 
     # show dates as dates
     #fmt = '%Y-%m-%d %H:%M'
