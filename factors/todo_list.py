@@ -44,6 +44,9 @@ class TodoList(fuckometer.Factor):
             print('%s fucks, %s raw, %s' % (self.fucks(), self.raw, self.text))
 
     def update(self):
+        if not hasattr(self, 'floor'):
+            self.floor = 0.0  # how fucked we are at the beginning of the day
+
         value = 0.0
         text = ''
         random_item = '[none yet]'
@@ -107,6 +110,11 @@ class TodoList(fuckometer.Factor):
         # daily task obligation vs completion
         obligation, completion = self.calculate_done(done, failcount)
 
+        # set new floor level for tomorrow
+        now = time.localtime()
+        if (now[3] == morning_hour - 1) and (now[4] > 58):
+            self.floor = obligation - completion
+
         # how much are we expected to have done right now, and how much
         # is actually done?
         factors.append(obligation - completion)
@@ -129,12 +137,13 @@ class TodoList(fuckometer.Factor):
         daylength = 24.0 - grace_period
         now = time.localtime(time.time() - (60*60*(morning_hour+grace_period)))
         if now[3] >= daylength:
-            obligation = 0.0
+            obligation = self.floor
         else:
             scale = (now[3]/daylength) + (now[4]/daylength/60) \
                     + (now[5]/daylength/60/60)
-            # smooth curve from 0 to 1
-            obligation = (1.0 - math.cos(scale * math.pi)) / 2.0
+            # smooth curve from floor to 1
+            diff = 1.0 - self.floor
+            obligation = self.floor + ((diff - math.cos(scale * math.pi)) / 2.0)
         completion = (done - failcount) / daily_target
         #print('\ntodo_list_update(): obligation=%.2f, completion=%.2f' \
         #        % (obligation, completion))
