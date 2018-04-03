@@ -168,7 +168,10 @@ def periodic(path, interval=10):
             pfunc.updated_at = now
             fp = open(path)
             lines = [l.strip() for l in fp.readlines() if l.strip()]
-            pfunc.value = random.choice(lines)
+            if lines:
+                pfunc.value = random.choice(lines)
+            else:
+                pfunc.value = '[empty]'
             fp.close()
         return pfunc.value
 
