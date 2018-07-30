@@ -80,7 +80,12 @@ def main(args):
             if name in ignore:
                 continue
 
-            value = float(parts[2])
+            #print(parts)
+            try:
+                value = float(parts[2])
+            except ValueError:
+                print('ValueError: %s' % (parts))
+                continue
 
             when = time.strptime(parts[0], "%Y-%m-%d %H:%M:%S")
             stamp = time.mktime(when)
@@ -181,6 +186,7 @@ def main(args):
 
     pl.xlim((graph_start, graph_end))
 
+    pl.grid(axis='y')
     pl.savefig(destfile, bbox_inches='tight')
     #pl.show()
 
