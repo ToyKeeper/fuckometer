@@ -8,9 +8,11 @@ main() {
     update fucks 1 /tmp/fuckometer-conky.png --conky
     update fucks 1 /tmp/fuckometer-24h.png
     update fucks 7 /tmp/fuckometer-7d.png
+    update fucks 30 /tmp/fuckometer-30d.png
     update fucks 183 /tmp/fuckometer-6m.png
 
     update factors   7 /tmp/factors-7d.png
+    update factors  30 /tmp/factors-30d.png
     update factors 183 /tmp/factors-6m.png
 
     sleep 10
