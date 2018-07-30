@@ -46,6 +46,7 @@ class TodoList(fuckometer.Factor):
     def update(self):
         if not hasattr(self, 'floor'):
             self.floor = 0.0  # how fucked we are at the beginning of the day
+            self.floor_tomorrow = 0.0
 
         value = 0.0
         text = ''
@@ -112,8 +113,10 @@ class TodoList(fuckometer.Factor):
 
         # set new floor level for tomorrow
         now = time.localtime()
-        if (now[3] == morning_hour - 1) and (now[4] > 58):
-            self.floor = obligation - completion
+        if (now[3] == morning_hour):
+            self.floor = self.floor_tomorrow
+        elif (now[3] == morning_hour-1):
+            self.floor_tomorrow = obligation - completion
 
         # how much are we expected to have done right now, and how much
         # is actually done?
@@ -132,18 +135,45 @@ class TodoList(fuckometer.Factor):
         self.text = '\n'.join(random_items)
 
     def calculate_done(self, done, failcount):
+        # obligation holds steady from (morning_hour - grace_period) to 
+        # (morning_hour + grace_period), holding its last value...
+        # but in-between it rises along a sine curve from self.floor to 1.0
+        # (so:
+        #   floor from 6am to 10am,
+        #   sine up from 10am to 2am,
+        #   then it's 1.0 from 2am to 6am)
+        hour = time.localtime(time.time() - (60*60*(morning_hour)))[3]
+        if hour < grace_period:
+            obligation = self.floor
+        elif hour >= (24 - grace_period):
+            obligation = 1.0
+        else:
+            now = time.localtime(time.time() - (60*60*(morning_hour+grace_period)))
+            daylength = 24.0 - grace_period - grace_period
+            phase = (now[3]/daylength) + (now[4]/daylength/60) \
+                    + (now[5]/daylength/60/60)
+            phase = max(0.0, min(1.0, phase))  # trim range, just in case
+            # smooth curve from floor to 1
+            size = 1.0 - self.floor
+            obligation = self.floor \
+                         + (size * (0.5 - (math.cos(phase * math.pi) / 2.0)))
+        """
         # set low expectations in the morning, but rise throughout the day
         # (can't be expected to have stuff done already in the morning)
-        daylength = 24.0 - grace_period
+        daylength = 24.0 - grace_period  # don't start until morning_hour+grace_period
         now = time.localtime(time.time() - (60*60*(morning_hour+grace_period)))
-        if now[3] >= daylength:
+        if now[3] >= daylength:  # if it's tomorrow, reset to the floor
             obligation = self.floor
         else:
+            # stop rising at grace_period hours before morning_hour
+            daylength -= grace_period
             scale = (now[3]/daylength) + (now[4]/daylength/60) \
                     + (now[5]/daylength/60/60)
+            scale = max(0.0, min(1.0, scale))  # trim range
             # smooth curve from floor to 1
             diff = 1.0 - self.floor
-            obligation = self.floor + ((diff - math.cos(scale * math.pi)) / 2.0)
+            obligation = self.floor + (diff * (0.5 - (math.cos(scale * math.pi) / 2.0)))
+            """
         completion = (done - failcount) / daily_target
         #print('\ntodo_list_update(): obligation=%.2f, completion=%.2f' \
         #        % (obligation, completion))
