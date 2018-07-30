@@ -130,7 +130,9 @@ def init(path=None):
     global lcd
     if not path:
         path = '/dev/ttyUSB1'
-    lcd = open(path, 'wb')
+    import serial
+    #lcd = open(path, 'wb')
+    lcd = serial.Serial(port=path, baudrate=19200, rtscts=False, dsrdtr=False)
     # turn cursor off
     lcd.write('\xfe\x4b') ; lcd.flush()
     # init large digits
