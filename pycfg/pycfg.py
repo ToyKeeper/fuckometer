@@ -37,7 +37,7 @@ class config(dict):
             >>> cfg.default(mylist=[3,4,5])
             >>> cfg.one
             1
-            >>> print cfg
+            >>> print(cfg)
             foo = 'foo'
             mylist = [3, 4, 5]
             one = 1
@@ -51,7 +51,7 @@ class config(dict):
         If you've got the included test.conf, a few values should have changed:
             >>> cfg.one
             'One'
-            >>> print cfg
+            >>> print(cfg)
             foo = 'bar'
             mylist = [3, 4, 5, 'a', 'b']
             one = 'One'
@@ -97,7 +97,7 @@ class config(dict):
             >>> cfg.default(verbose=0, speed=3)
             >>> cfg.doc(verbose="set the verbosity level")
             >>> cfg.doc(speed=["Go, speed racer!", "Go!"])
-            >>> print cfg
+            >>> print(cfg)
             # Go, speed racer!
             # Go!
             speed = 3
@@ -123,9 +123,9 @@ class config(dict):
             >>> cfg = config()
             >>> cfg.verbose = 1
             >>> cfg.default(verbose=0, mode="monitor")
-            >>> print cfg.mode
+            >>> print(cfg.mode)
             monitor
-            >>> print cfg.verbose
+            >>> print(cfg.verbose)
             1
 
         Default for undefined keys:
@@ -134,7 +134,7 @@ class config(dict):
               ...
             KeyError: 'undefined'
             >>> cfg.default(None)
-            >>> print cfg.undefined
+            >>> print(cfg.undefined)
             None
             >>> cfg.default(3)
             >>> cfg.undefined
@@ -226,7 +226,7 @@ class config(dict):
             >>> cfg.verbose
             False
             >>> cfg.merge_opts(opts)
-            >>> print cfg
+            >>> print(cfg)
             verbose = True
         """
         # copy option data to config (override cfg)
@@ -253,20 +253,19 @@ class config(dict):
         try:
             ns = {}
             ns.update(self)
-            execfile(filename, ns)
+            #execfile(filename, ns)
+            exec(open(filename).read(), ns)
             self.update(ns)
         except:
-            print "Error in config file %s" % filename
+            print("Error in config file %s" % filename)
             import traceback
             import sys
-            foo = traceback.format_exception(sys.exc_type,
-                    sys.exc_value,
-                    sys.exc_traceback)
+            foo = traceback.format_exception(*sys.exc_info())
             for item in foo:
                 item = item[:-1]
-                print item
-            print "Press Enter to continue..."
-            raw_input()
+                print(item)
+            print("Press Enter to continue...")
+            input()
 
     def save(self, path=None, include_defaults=True):
         """Save str(self) to 'path', or to one of the files in the load path.
@@ -306,7 +305,7 @@ class config(dict):
         """
         try:
             return dict.__getitem__(self, k)
-        except KeyError, e:
+        except KeyError as e:
             if type(self._default) == type(Exception):
                 raise
             else:
