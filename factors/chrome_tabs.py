@@ -6,6 +6,7 @@ import sys ; sys.path.insert(1, dirname(dirname(abspath(__file__))))
 
 import math
 import subprocess
+import time
 
 import fuckometer
 
@@ -36,10 +37,14 @@ class ChromeTabs(fuckometer.Factor):
         # getting the data is messy, so put it in another script
         basedir = sys.path[1]
         cmd = ('%s/%s' % (basedir, 'factors/chrome_tabs/tabsOpen.py'),)
-        text = subprocess.check_output(cmd)
-        value = int(text)
-        self.raw = value
-        self.text = 'Chrome Tabs: %i' % (self.raw)
+        try:
+            text = subprocess.check_output(cmd)
+            value = int(text)
+            self.raw = value
+            self.text = 'Chrome Tabs: %i' % (self.raw)
+        except subprocess.CalledProcessError:
+            now = time.strftime('%Y-%m-%d %H:%M:%S')
+            print('%s chrome_tabs.py: Error calling tabsOpen.py' % (now))
 
 
 if __name__ == "__main__":
