@@ -75,6 +75,12 @@ def main(args):
         else:
             source = fp
         for line in source:
+            # allow commenting out lines,
+            # in case there's bad data to manually edit out
+            # or context to edit in
+            if line.startswith('#'):
+                continue
+
             parts = line.split()
 
             when = time.strptime(' '.join(parts[0:2]), "%Y-%m-%d %H:%M:%S")
