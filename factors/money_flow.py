@@ -21,7 +21,13 @@ datefmt = '%Y-%m-%d'
 def main(args):
     fuckometer.init()
     cashflow = Beancount(condition=fuckometer.six_am)
-    cashflow.loop()  # run forever
+    if args:  # just run once, print info, and exit
+        cashflow.update()
+        print(cashflow.text)
+        f = cashflow.fucks()
+        print('Fucks: %.2f' % (f))
+    else:
+        cashflow.loop()  # run forever
 
 
 class Beancount(fuckometer.Factor):
