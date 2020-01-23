@@ -19,25 +19,25 @@ I needed a way to bring them all together.  I needed a fuckometer.
 
 ## What is it?
 
-It's an aggregator.  It measures a bunch of different things and boils that
+**It's an aggregator**.  It measures a bunch of different things and boils that
 data down into a single number representing how fucked you are, in percent.
 Also generates graphs to help track progress, points out which things are most
 fucked right now, and gives suggestions about what you could be doing right now
 to get less fucked.
 
-It's a way to stay productive.  It can help provide motivation and guidance by
-gamifying life, sort of.  If you can get the graph lower than it was yesterday,
-or last week, or last month, then you're making progress.  If it gets higher,
-you may be getting behind.
+**It's a way to stay productive**.  It can help provide motivation and guidance
+by gamifying life, sort of.  If you can get the graph lower than it was
+yesterday, or last week, or last month, then you're making progress.  If it
+gets higher, you may be getting behind.
 
-It's a way to focus on the right things at the right times.  It tells you what
-your biggest fires are at any given moment so you won't neglect anything for
-too long.
+**It's a way to focus on the right things at the right times**.  It tells you
+what your biggest fires are at any given moment so you won't neglect anything
+for too long.
 
-It is *not* a magic bullet, nor the sort of thing you can simply install with
-one click and have it work immediately.  In order to get useful results, you'll
-need to decide what things you need to work on, and make it grab data from
-those things.  You will likely need to write your own conduits to use as
+**It is *not* a magic bullet**, nor the sort of thing you can simply install
+with one click and have it work immediately.  In order to get useful results,
+you'll need to decide what things you need to work on, and make it grab data
+from those things.  You will likely need to write your own conduits to use as
 factors in the equation, so it tries to make those conduits relatively easy to
 create.
 
@@ -66,19 +66,19 @@ data from the `factors/*` directories, processes it, then saves to a few files:
 Each factor is expected to periodically write a few values:
 
 * **factors/my_factor/fucks**: On a scale of 0 to 100, how fucked are things
-  right now for this particular conduit?  Can exceed 100 or go below 0, but is
-  recommended to stay approximately in the 0 to 100 range.
+  right now for this particular conduit?  (Can exceed 100 or go below 0, but is
+  recommended to stay approximately in the 0 to 100 range.)
 * **factors/my_factor/text**: Human-formatted text summary of this factor's
-  data, suitable for display on the LCD.  If there are multiple lines of text,
+  data, suitable for display on a LCD.  If there are multiple lines of text,
   one line will be chosen at random.
 * **factors/my_factor/raw**: Optional.  This factor's current value in the
   factor's internal format.  Can be whatever.
 
 ## Factors
 
-The [factors](factors/) directory contains several working examples that I use.
-Since each person uses different tools, these are intended to help you write
-your own.
+The [factors](factors/) directory contains several conduits that I use.  Since
+each person uses different tools, these are intended as examples to help you
+write your own.
 
 Here's what I have so far:
 
@@ -89,9 +89,9 @@ Here's what I have so far:
 * **Email**: Track email inboxes and a special "TODO" tag, to encourage you
   toward "inbox zero" and remind you to finish messages you marked for later.
   In my setup, this is done by ssh'ing to my email VPS and running a script
-  there to generate the data.  On my VPS, I use mutt and 'notmuch' for my mail.
+  there to generate the data.  It gets data from 'notmuch' and Maildir queries.
 
-* **Money flow**: How much are you worth?  Is than amount increasing or
+* **Money flow**: How much are you worth?  Is that amount increasing or
   decreasing?  Are you hitting your monthly income goals?  Lets you know you're
   fucked if your worth is low or decreasing.  This implementation queries my
   BeanCount ledger, which is a plaintext double-entry accounting system.
@@ -106,13 +106,13 @@ Here's what I have so far:
   calculates its "fucked level" if that number gets below 20 years.
 
 * **TKDO scores**: Using my [TKDO](http://toykeeper.net/programs/tkdo/)
-  GTD-like task management system, take an average of the top 20 scores.  This
+  task management system, take an average of the top 20 scores.  This
   encourages actually paying attention to my TKDO lists and using its recurring
   task features to stay on top of things like bills and exercise and daily
-  tasks.  TKDO is a fairly powerful implementation of "Getting Things Done"
-  concepts based on plain text files and some scripts.
+  tasks.  (TKDO is a fairly powerful implementation of "Getting Things Done"
+  concepts based on plain text files and some scripts.)
 
-* **Todo list**: Using a plaintext VimOutliner-style todo list with one entry
+* **Todo list**: Using a plaintext VimOutliner-style todo list with one heading
   per day, this encourages me to get a minimum number of tasks done each day,
   and to make sure I review past days to carry forward anything I need to
   finish or repeat.  Starts with a todo "obligation" of zero each morning and
@@ -128,8 +128,8 @@ Here's what I have so far:
   like sticky notes, leaving everything related to a project open until it's
   done.  But then I see a shiny thing and move on to the next project,
   forgetting about the old ones.  This helps me go back and actually finish
-  things, then close the windows afterward.  (uses Sawfish 1.5 custom script to
-  get window data)
+  things, then close the windows afterward.  (uses a Sawfish 1.5 custom script
+  to get window data)
 
 * **Windows open on my notebook**: Same, but on my notebook.
 
@@ -141,24 +141,17 @@ There are a few more I might add later too:
 * **Work hours**: Using my "XActivity" program, keep track of how many hours
   I've worked today and this week.  Tell me how fucked (or not fucked) I am
   based on how much time I've logged.  XActivity monitors keyboard and mouse
-  events to determine when you're active, and logs this data for every minute
-  of every day for every computer I use.  Additionally, it tracks which window
-  was active at the time, down to the second, so I can tell what I spent my
-  time on.  This is then summarized into buckets of different types of
-  activities, which I can use to figure out if I've been getting a lot of work
-  done or if I was just browsing Facebook.  The main upshot is that I can tell
-  exactly how much time I've spent working, so I can tell whether I need to
-  keep working or if I'm done for the day, and it's all automatic.
+  events to determine when I'm active, and logs this data for every minute of
+  every day for every computer I use.  Additionally, it tracks which window was
+  active at the time, down to the second, so I can tell what I spent my time
+  on.  This is then summarized into buckets, which I can use to figure out if
+  I've been getting a lot of work done or if I was just browsing Facebook.  The
+  main upshot is that I can tell exactly how much time I've spent working, so I
+  can tell whether I need to keep working or if I'm done for the day... and
+  it's all automatic.
 
 * **Bug trackers**: How many open bugs are assigned to me or my projects?  Let
   me know when my bug pile is getting big so I can do something about it.
-
-* **Drumpf**: Monitor the news to figure out how crazy Trump has been lately
-  and whether we're getting closer to World War III or if it's a rare day with
-  no new dumpster fires.  (or more generally, monitor the overall tone of news
-  sources to gauge whether the world is getting better or worse)  May not
-  happen since it's of questionable usefulness and would be a relatively
-  time-consuming project.
 
 ## Display
 
@@ -173,10 +166,11 @@ Here's how that looks:
 
 ![text screenshot](http://toykeeper.net/fuckometer/gfx/lcd-text.png)
 
-### Basic graph
+### Graphs
 
-Using the included graphing scripts, results over time can be graphed.  These
-include:
+The included graphing scripts show results over time.  These include the main
+graph and the factor details, for time windows of 24 hours, 7 days, 30 days,
+and 180 days.  For example:
 
 * Past 24 hours: Detailed view of one day.  To make progress each day, try to
   get the right edge of the graph lower than the left edge.  
@@ -186,8 +180,8 @@ include:
 * Factors for 7 days: Status of individual factors over time, to see more
   detailed trends.  
   ![7-day details](http://toykeeper.net/fuckometer/gfx/factors-7d.png)
-* Factors for 6 months: Status of individual factors over a long time, to see
-  progress on long-term responsibilities.
+* Factors for 6 months: Status of individual factors over time, to see
+  progress for each.
 
 ### Web
 
@@ -195,7 +189,7 @@ I have some of my live data on my web site, as a communication tool to help
 others see how I'm doing.  It's not quite the same as having a public todo
 list, but it's similar.
 
-* [ToyKeeper's Fuckometer](http://toykeeper.net/fuckometer/).
+However, the full web UI isn't really implemented yet.
 
 ### Conky
 
@@ -224,8 +218,7 @@ ${alignr}${color}${head /home/selene/.fuckometer/factors/email_inboxes/text 1 30
 
 ## Configuration
 
-The weighted average comes from the config file.  This can be generated at the
-command line...
+A default config file can be generated at the command line for later editing...
 
 ```
 cd fuckometer
@@ -233,7 +226,8 @@ mkdir ~/.fuckometer
 ./fuckometer.py --cfg > ~/.fuckometer/rc
 ```
 
-The main thing to edit here is the `weights` list.  For example:
+The main thing to edit here is the `weights` list, to tell it how much each
+factor matters.  For example:
 
 ```
 weights = [
@@ -267,7 +261,7 @@ needs:
 
 ## Getting started
 
-This might take a while.
+This might take a while.  To use this tool...
 
 1. Make a config file, as described above.
 2. Run the fuckometer.  Expect to re-start it a lot while adding conduits.
@@ -280,3 +274,6 @@ This might take a while.
    `steins_gate.py` as a template.
 6. Run the conduits.  A `start-all-factors.sh` script is provided to make it
    easier to start or re-start everything.
+
+More new-user-friendly installation and setup may be added at some point, but
+for now it's still a very DIY sort of system.
