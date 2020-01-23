@@ -180,8 +180,6 @@ and 180 days.  For example:
 * Factors for 7 days: Status of individual factors over time, to see more
   detailed trends.  
   ![7-day details](http://toykeeper.net/fuckometer/gfx/factors-7d.png)
-* Factors for 6 months: Status of individual factors over time, to see
-  progress for each.
 
 ### Web
 
