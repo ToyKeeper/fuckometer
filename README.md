@@ -207,12 +207,12 @@ ${image /tmp/fuckometer-conky.png -p 0,48 -s 85x63 -f 60}
 
 
 
-${color lightgrey}Fucks:${alignr}${color}${texeci 30 cut -c 12- /home/selene/.fuckometer/text}
-${alignr}${color}${head /home/selene/.fuckometer/fires 8 30}
-${alignr}${color}${head /home/selene/.fuckometer/factors/windows_open/text 1 30}\
-${alignr}${color}${head /home/selene/.fuckometer/factors/chrome_tabs/text 1 30}\
-${alignr}${color}${head /home/selene/.fuckometer/factors/email_todo/text 1 30}\
-${alignr}${color}${head /home/selene/.fuckometer/factors/email_inboxes/text 1 30}\
+${color lightgrey}Fucks:${alignr}${color}${texeci 30 cut -c 12- $HOME/.fuckometer/text}
+${alignr}${color}${head $HOME/.fuckometer/fires 8 30}
+${alignr}${color}${head $HOME/.fuckometer/factors/windows_open/text 1 30}\
+${alignr}${color}${head $HOME/.fuckometer/factors/chrome_tabs/text 1 30}\
+${alignr}${color}${head $HOME/.fuckometer/factors/email_todo/text 1 30}\
+${alignr}${color}${head $HOME/.fuckometer/factors/email_inboxes/text 1 30}\
 
 ```
 
