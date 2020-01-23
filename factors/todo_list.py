@@ -110,6 +110,8 @@ class TodoList(fuckometer.Factor):
 
         # daily task obligation vs completion
         obligation, completion = self.calculate_done(done, failcount)
+        if fuckometer.cfg.verbose:
+            print('todo(obligation=%.3f, completion=%.3f)' % (obligation, completion))
 
         # set new floor level for tomorrow
         now = time.localtime()
